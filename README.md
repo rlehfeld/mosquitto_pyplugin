@@ -1,7 +1,7 @@
-mosquitto_pyauth
-================
+mosquitto_pyplugin
+==================
 
-Mosquitto auth plugin that lets you write your auth plugins in Python.
+Mosquitto plugin that lets you write your plugins in Python.
 
 Compiling
 =========
@@ -15,22 +15,15 @@ You must either have mosquitto header files installed globally in
 `/usr/include`, etc. or clone this repository at the top of the
 mosquitto source directory. Then:
 
-    cd mosquitto_pyauth
-    make USE_CARES=1
+    cd mosquitto_pyplugin
+    make
 
-Remove `USE_CARES` if c-ares library isn't installed in your system.
+Pass `PYTHON` variable to compile with other Python interpreter
+version than default (pypy3.9):
 
-Alternatively you can pass full path to mosquitto sources using
-`MOSQUITTO_SRC` variable:
+    make PYTHON=python3
 
-    make MOSQUITTO_SRC=/path/to/mosquitto-src
-
-Pass `PYTHON_VERSION` variable to compile with other other Python
-version than default (3.6):
-
-    make PYTHON_VERSION=2.7
-
-If all goes ok, there should be `auth_plugin_pyauth.so` file in the
+If all goes ok, there should be `mosquitto_pyplugin.so` file in the
 current directory. Copy it under path accessible for mosquitto daemon,
 e.g.: `/usr/local/lib/mosquitto/`.
 
@@ -48,13 +41,13 @@ Running
 
 Add following line to `mosquitto.conf`:
 
-    auth_plugin /path/to/auth_plugin_pyauth.so
+    plugin /path/to/mosquitto_pyplugin.so
 
 You must also give a pointer to Python module which is going to be
 loaded (make sure it's in Python path, use `PYTHONPATH` env variable
 to the rescue):
 
-    auth_opt_pyauth_module some_module
+    plugin_opt_pyplugin_module some_module
 
 Python module
 =============
@@ -63,8 +56,8 @@ Python module should do required initializations when it's imported
 and provide following global functions:
 
 * `plugin_init(opts)`: called on plugin init, `opts` holds a tuple of
-  (key, value) 2-tuples with all `auth_opt_` params from mosquitto
-  configuration (except `auth_opt_pyauth_module`)
+  (key, value) 2-tuples with all `plugin_opt_` params from mosquitto
+  configuration (except `plugin_opt_pyplugin_module`)
 
 * `plugin_cleanup()`: called on plugin cleanup with no arguments
 
@@ -73,9 +66,9 @@ and provide following global functions:
 
 * `acl_check(client_id, username, topic, access, payload)`: return
   `True` if given user is allowed to subscribe (`access =
-  mosquitto_auth.MOSQ_ACL_SUBSCRIBE`), read (`access =
-  mosquitto_auth.MOSQ_ACL_READ`) or publish (`access =
-  mosquitto_auth.MOSQ_ACL_WRITE`) to given topic (see `mosquitto_auth`
+  mosquitto_pyplugin.MOSQ_ACL_SUBSCRIBE`), read (`access =
+  mosquitto_pyplugin.MOSQ_ACL_READ`) or publish (`access =
+  mosquitto_pyplugin.MOSQ_ACL_WRITE`) to given topic (see `mosquitto_pyplugin`
   module below). `payload` argument holds message payload as bytes, or
   `None` if not applicable.
 
@@ -91,9 +84,9 @@ and provide following global functions:
 Auxiliary module
 ================
 
-Authentication module can import an auxiliary module provided by mosquitto:
+Plugin module can import an auxiliary module provided by mosquitto:
 
-    import mosquitto_auth
+    import mosquitto_pyplugin
 
 The module provides following function:
 

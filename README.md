@@ -43,6 +43,9 @@ Add following line to `mosquitto.conf`:
 
     plugin /path/to/mosquitto_pyplugin.so
 
+File mosquitto_pyplugin.py must be found by the used python interpreter.
+You can use PYTHONPATH to adapt this accordingly.
+
 You must also give a pointer to Python module which is going to be
 loaded (make sure it's in Python path, use `PYTHONPATH` env variable
 to the rescue):

@@ -11,5 +11,5 @@ const int MOSQ_LOG_DEBUG;
 const int MOSQ_LOG_SUBSCRIBE;
 const int MOSQ_LOG_UNSUBSCRIBE;
 
-void Log(int loglevel, char* fmt);
-bool topic_matches_sub(char* sub, char* topic);
+void _mosq_log(int loglevel, char* message);
+bool _mosq_topic_matches_sub(char* sub, char* topic);

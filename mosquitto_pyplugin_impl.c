@@ -60,12 +60,12 @@ static void die(bool print_exception, const char *fmt, ...)
     exit(1);
 }
 
-static void Log(int loglevel, char* message)
+static void _mosq_log(int loglevel, char* message)
 {
     mosquitto_log_printf(loglevel, "%s", message);
 }
 
-static bool topic_matches_sub(char* sub, char* topic)
+static bool _mosq_topic_matches_sub(char* sub, char* topic)
 {
     bool res = false;
     mosquitto_topic_matches_sub(sub, topic, &res);
@@ -120,6 +120,9 @@ CFFI_DLLEXPORT int mosquitto_auth_plugin_init(void **user_data, struct mosquitto
 
     if (!cffi_start_python())
         die(false, "failed to start python");
+
+    if (NULL == PyImport_ImportModule(PLUGIN_NAME))
+        die(true, "failed to import module: %s", PLUGIN_NAME);
 
     data->module = PyImport_ImportModule(data->module_name);
     if (NULL == data->module)

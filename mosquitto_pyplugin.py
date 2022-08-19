@@ -1,20 +1,15 @@
-import cffi
-import os.path
-ffibuilder = cffi.FFI()
+from _mosquitto_pyplugin import ffi, lib
 
-prefix = os.path.splitext(__file__)[0]
-plugin = os.path.basename(prefix)
-export_file = prefix + "_export.h"
-impl_file = prefix + "_impl.c"
+def log(loglevel, message):
+    cstr = ffi.new("char[]", message.encode('UTF8'))
+    lib._mosq_log(loglevel, cstr)
 
-with open(impl_file) as f:
-    ffibuilder.set_source(plugin, f.read())
+def topic_matches_sub(sub, topic):
+    sub_cstr = ffi.new("char[]", sub.encode('UTF8'))
+    topic_cstr = ffi.new("char[]", topic.encode('UTF8'))
+    return lib._mosq_topic_matches_sub(sub_cstr, topic_cstr);
 
-with open(export_file) as f:
-    ffibuilder.cdef(f.read())
-
-ffibuilder.embedding_init_code(f"""
-    from {plugin} import ffi
-""")
-
-ffibuilder.compile(target=f"{plugin}.*", verbose=True)
+def __getattr__(name):
+    if name and name[0] != '_' and hasattr(lib, name):
+        return getattr(lib, name)
+    raise AttributeError(f"module {__name__} has no attribute {name}")

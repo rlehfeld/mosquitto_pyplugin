@@ -3,7 +3,7 @@ DESTDIR ?= /usr
 
 all: mosquitto_pyplugin.so
 
-mosquitto_pyplugin.so: mosquitto_pyplugin.py mosquitto_pyplugin_export.h mosquitto_pyplugin_impl.c
+mosquitto_pyplugin.so: mosquitto_pyplugin_generator.py mosquitto_pyplugin_export.h mosquitto_pyplugin_impl.c
 	$(PYTHON) $<
 
 install: mosquitto_pyplugin.so

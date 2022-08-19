@@ -15,11 +15,6 @@ with open(export_file) as f:
 
 ffibuilder.embedding_init_code(f"""
     from {plugin} import ffi
-
-    @ffi.def_extern()
-    def init_python():
-        print("in init_python")
-        pass
 """)
 
 ffibuilder.compile(target=f"{plugin}.*", verbose=True)

@@ -1,5 +1,4 @@
-import mosquitto_pyplugin
-
+from mosquitto_pyplugin import lib as mosquitto_pyplugin
 
 def plugin_init(opts):
     mosquitto_pyplugin.Log(

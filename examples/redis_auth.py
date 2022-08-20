@@ -10,45 +10,76 @@
 
 import hashlib
 import redis
+if __name__ == '__main__':
+    import mosquitto_pyplugin
+
 
 redis_conn = None
 
-def plugin_init(opts):
-    global redis_conn
-    conf = dict(opts)
-    redis_host = conf.get('redis_host', '127.0.0.1')
-    redis_port = conf.get('redis_port', 6379)
-    redis_conn = redis.StrictRedis(redis_host, redis_port)
-    print('redis initialized', redis_host, redis_port)
 
-def unpwd_check(username, password):
+def plugin_init(options):
+    global redis_conn
+    redis_host = options.get('redis_host', '127.0.0.1')
+    redis_port = options.get('redis_port', 6379)
+    redis_conn = redis.StrictRedis(redis_host, redis_port)
+    mosquitto_pyplugin.log(
+        mosquitto_pyplugin.MOSQ_LOG_INFO,
+        f'redis initialized {redis_host}:{redis_port}'
+    )
+
+
+def basic_auth(client_id, username, password):
+    import mosquitto_pyplugin
     val = redis_conn.hget('mosq.' + username, 'auth')
     if not val:
-        print('AUTH: no such user:', username)
-        return False
+        mosquitto_pyplugin.log(
+            mosquitto_pyplugin.MOSQ_LOG_INFO,
+            f'AUTH: no such user: {username}')
+        return mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER
     salt, hashed = val.split(b':')
     check = hashlib.sha1(salt + password.encode()).hexdigest().encode()
     ok = (check == hashed)
-    print('AUTH: user=%s, password matches = %s' % (username, ok))
-    return ok
+    mosquitto_pyplugin.log(
+        mosquitto_pyplugin.MOSQ_LOG_INFO,
+        f'AUTH: user={username}, password matches = {ok}'
+    )
+    if ok:
+        return mosquitto_pyplugin.MOSQ_ERR_SUCCESS
+    else:
+        return mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER
+
 
 def acl_check(client_id, username, topic, access, payload):
-    import mosquitto_auth
-
     if username is None:
-        print('AUTH required')
-        return False
+        mosquitto_pyplugin.log(
+            mosquitto_pyplugin.MOSQ_LOG_INFO,
+            'AUTH required'
+        )
+        return mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER
     pat = redis_conn.hget('mosq.' + username, 'acl')
     if not pat:
-        print('ACL: no such user:', username)
-        return False
-    matches = mosquitto_auth.topic_matches_sub(pat.decode(), topic)
-    print('ACL: user=%s topic=%s, matches = %s, payload = %r' % (username, topic, matches, payload))
-    return matches
+        mosquitto_pyplugin.log(
+            mosquitto_pyplugin.MOSQ_LOG_INFO,
+            f'ACL: no such user: {username}'
+        )
+        return mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER
+    matches = mosquitto_pyplugin.topic_matches_sub(pat.decode(), topic)
+    mosquitto_pyplugin.log(
+        mosquitto_pyplugin.MOSQ_LOG_INFO,
+        f'ACL: user={username} topic={topic}, '
+        f'matches = {matches}, payload = {payload}'
+    )
+    if matches:
+        return mosquitto_pyplugin.MOSQ_ERR_SUCCESS
+    else:
+        return mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER
 
 
 def psk_key_get(identity, hint):
-    print('psk_key_get', identity, hint)
+    mosquitto_pyplugin.log(
+        mosquitto_pyplugin.MOSQ_LOG_INFO,
+        f'psk_key_get {identity} {hint}'
+    )
     return '0123456789'
 
 
@@ -62,11 +93,12 @@ if __name__ == '__main__':
         acl_topic = sys.argv[3]
     except IndexError:
         sys.exit('redis_auth <username> <password> <allowed topic>')
-    salt = ''.join(c for _ in range(6) for c in random.choice(string.ascii_letters))
+    salt = ''.join(c for _ in range(6)
+                   for c in random.choice(string.ascii_letters))
     hashed = hashlib.sha1(salt.encode() + password.encode()).hexdigest()
     conn = redis.StrictRedis()
-    print('HSET', 'mosq.' + username, 'auth', salt + ':' + hashed)
-    conn.hset('mosq.' + username, 'auth', salt + ':' + hashed)
-    print('HSET', 'mosq.' + username, 'acl', acl_topic)
-    conn.hset('mosq.' + username, 'acl', acl_topic)
-    print('%s: password set successfully' % username)
+    print(f'HSET mosq.{username} auth {salt}:{hashed}')
+    conn.hset(f'mosq.{username}', 'auth', f'{salt}:{hashed}')
+    print(f'HSET mosq.{username} acl {acl_topic}')
+    conn.hset(f'mosq.{username}', 'acl', acl_topic)
+    print(f'{username}: password set successfully')

@@ -15,18 +15,24 @@ def plugin_cleanup(options):
     )
 
 
-def basic_auth(client_id, username, password):
+def basic_auth(client_id, username, password,
+               client_address, client_protocol,
+               client_protocol_version):
     mosquitto_pyplugin.log(
         mosquitto_pyplugin.MOSQ_LOG_INFO,
-        'basic_auth (client_id: {} username: {} password: {})'.format(
-            client_id, username, password
+        'basic_auth (client_id: {} username: {} password: {} '
+        'client_address: {} client_protocol: {} '
+        'client_protocol_version: {})'.format(
+            client_id, username, password, client_address, client_protocol,
+            client_protocol_version
         )
     )
 
     return mosquitto_pyplugin.MOSQ_ERR_SUCCESS
 
 
-def acl_check(client_id, username, topic, access, payload):
+def acl_check(client_id, client_username, client_address, client_protocol,
+              client_protocol_version, topic, access, payload):
     mosquitto_pyplugin.log(
         mosquitto_pyplugin.MOSQ_LOG_INFO,
         'acl_check {}'.format(
@@ -34,26 +40,23 @@ def acl_check(client_id, username, topic, access, payload):
         )
     )
 
+    access_text = None
     if access == mosquitto_pyplugin.MOSQ_ACL_READ:
-        mosquitto_pyplugin.log(
-            mosquitto_pyplugin.MOSQ_LOG_INFO,
-            'acl_check READ (client_id: {} username: {} topic: {} '
-            'access: {}, payload: {!r})'
-            .format(client_id, username, topic, access, payload)
-        )
+        access_text = 'READ'
     elif access == mosquitto_pyplugin.MOSQ_ACL_SUBSCRIBE:
-        mosquitto_pyplugin.log(
-            mosquitto_pyplugin.MOSQ_LOG_INFO,
-            'acl_check SUBSCRIBE (client_id: {} username: {} topic: {} '
-            'access: {}, payload: {!r})'
-            .format(client_id, username, topic, access, payload)
-        )
+        access_text = 'SUBSCRIBE'
     elif access == mosquitto_pyplugin.MOSQ_ACL_WRITE:
+        access_text = 'WRITE'
+    if access_text:
         mosquitto_pyplugin.log(
             mosquitto_pyplugin.MOSQ_LOG_INFO,
-            'acl_check WRITE (client_id: {} username: {} topic: {} '
-            'access: {}, payload: {!r})'
-            .format(client_id, username, topic, access, payload)
+            'acl_check {} (client_id: {} client_username: {} '
+            'client_address: {} client_protocol: {} '
+            'client_protocol_version: {} topic: {} access: {} '
+            'payload: {!r})'
+            .format(access_text, client_id, client_username, client_address,
+                    client_protocol, client_protocol_version, topic, access,
+                    payload)
         )
     return mosquitto_pyplugin.MOSQ_ERR_SUCCESS
 

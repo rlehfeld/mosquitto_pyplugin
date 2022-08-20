@@ -28,9 +28,11 @@ def plugin_init(options):
     )
 
 
-def basic_auth(client_id, username, password):
+def basic_auth(client_id, username, password,
+               client_address, client_protocol,
+               client_protocol_version):
     import mosquitto_pyplugin
-    val = redis_conn.hget('mosq.' + username, 'auth')
+    val = redis_conn.hget(f'mosq.{username}', 'auth')
     if not val:
         mosquitto_pyplugin.log(
             mosquitto_pyplugin.MOSQ_LOG_INFO,
@@ -49,24 +51,25 @@ def basic_auth(client_id, username, password):
         return mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER
 
 
-def acl_check(client_id, username, topic, access, payload):
-    if username is None:
+def acl_check(client_id, client_username, client_address, client_protocol,
+              client_protocol_version, topic, access, payload):
+    if client_username is None:
         mosquitto_pyplugin.log(
             mosquitto_pyplugin.MOSQ_LOG_INFO,
             'AUTH required'
         )
         return mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER
-    pat = redis_conn.hget('mosq.' + username, 'acl')
+    pat = redis_conn.hget(f'mosq.{client_username}', 'acl')
     if not pat:
         mosquitto_pyplugin.log(
             mosquitto_pyplugin.MOSQ_LOG_INFO,
-            f'ACL: no such user: {username}'
+            f'ACL: no such user: {client_username}'
         )
         return mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER
     matches = mosquitto_pyplugin.topic_matches_sub(pat.decode(), topic)
     mosquitto_pyplugin.log(
         mosquitto_pyplugin.MOSQ_LOG_INFO,
-        f'ACL: user={username} topic={topic}, '
+        f'ACL: user={client_username} topic={topic}, '
         f'matches = {matches}, payload = {payload}'
     )
     if matches:

@@ -53,26 +53,36 @@ ffibuilder.embedding_init_code(f"""
 
 
     @ffi.def_extern()
-    def _py_basic_auth(user_data, client_id, username, password):
+    def _py_basic_auth(user_data, client_id, username, password,
+                       client_address, client_protocol,
+                       client_protocol_version):
         obj = ffi.from_handle(user_data)
         client_id = _to_string(client_id)
         username = _to_string(username)
         password = _to_string(password)
-        return obj.basic_auth(client_id, username, password)
+        client_address = _to_string(client_address)
+        return obj.basic_auth(client_id, username, password,
+                              client_address, client_protocol,
+                              client_protocol_version)
 
 
     @ffi.def_extern()
-    def _py_acl_check(user_data, client_id, username,
+    def _py_acl_check(user_data, client_id, client_username,
+                      client_address, client_protocol,
+                      client_protocol_version,
                       topic, access, payload, payloadlen):
         obj = ffi.from_handle(user_data)
         client_id = _to_string(client_id)
-        username = _to_string(username)
+        client_username = _to_string(client_username)
+        client_address = _to_string(client_address)
         topic = _to_string(topic)
         if payload is None or payload == ffi.NULL:
             payload = None
         else:
             payload = bytes(ffi.unpack(payload, payloadlen))
-        return obj.acl_check(client_id, username, topic, access, payload)
+        return obj.acl_check(client_id, client_username, client_address,
+                             client_protocol, client_protocol_version, topic,
+                             access, payload)
 """)
 
 ffibuilder.compile(target=f"{plugin}.*", verbose=True)

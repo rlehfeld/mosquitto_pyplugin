@@ -1,13 +1,13 @@
 struct mosquitto;
 
 struct mosquitto_opt {
-	char *key;
-	char *value;
+        char *key;
+        char *value;
 };
 
 struct mosquitto_auth_opt {
-	char *key;
-	char *value;
+        char *key;
+        char *value;
 };
 
 const int MOSQ_ACL_NONE;
@@ -31,7 +31,24 @@ const int MOSQ_LOG_UNSUBSCRIBE;
 void _mosq_log(int loglevel, char* message);
 bool _mosq_topic_matches_sub(char* sub, char* topic);
 
-extern "Python" void* _py_plugin_init(struct mosquitto_opt *options, int option_count);
-extern "Python" int _py_plugin_cleanup(void *user_data, struct mosquitto_opt *options, int option_count);
-extern "Python" int _py_basic_auth(void* user_data, const char *client_id, const char* username, const char* password);
-extern "Python" int _py_acl_check(void* user_data, const char* client_id, const char* username, const char *topic, int access, const unsigned char* payload, uint32_t payloadlen);
+extern "Python" void* _py_plugin_init(struct mosquitto_opt *options,
+                                      int option_count);
+extern "Python" int _py_plugin_cleanup(void *user_data,
+                                       struct mosquitto_opt *options,
+                                       int option_count);
+extern "Python" int _py_basic_auth(void* user_data,
+                                   const char* client_id,
+                                   const char* username, const char* password,
+                                   const char* client_address,
+                                   int client_protocol,
+                                   int client_protocol_version);
+extern "Python" int _py_acl_check(void* user_data,
+                                  const char* client_id,
+                                  const char* client_username,
+                                  const char* client_address,
+                                  int client_protocol,
+                                  int client_protocol_version,
+                                  const char *topic,
+                                  int access,
+                                  const unsigned char* payload,
+                                  uint32_t payloadlen);

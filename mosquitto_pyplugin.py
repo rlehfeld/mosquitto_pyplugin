@@ -35,20 +35,28 @@ class MosquittoCallbackHandler(object):
 
         _HANDLER.remove(self)
 
-    def basic_auth(self, client_id, username, password):
+    def basic_auth(self, client_id, username, password,
+                   client_address, client_protocol,
+                   client_protocol_version):
         for module in self._modules:
             if hasattr(module, 'basic_auth'):
-                result = module.basic_auth(client_id, username, password)
+                result = module.basic_auth(client_id, username, password,
+                                           client_address, client_protocol,
+                                           client_protocol_version)
                 if result != lib.MOSQ_ERR_PLUGIN_DEFER:
                     return result
 
         return lib.MOSQ_ERR_PLUGIN_DEFER
 
-    def acl_check(self, client_id, username, topic, access, payload):
+    def acl_check(self, client_id, client_username,
+                  client_address, client_protocol,
+		  client_protocol_version, topic, access, payload):
         for module in self._modules:
             if hasattr(module, 'acl_check'):
                 result = module.acl_check(
-                    client_id, username, topic, access, payload
+                    client_id, client_username, client_address,
+                    client_protocol, client_protocol_version,
+                    topic, access, payload,
                 )
                 if result != lib.MOSQ_ERR_PLUGIN_DEFER:
                     return result

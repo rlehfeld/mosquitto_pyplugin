@@ -58,31 +58,29 @@ Python module
 Python module should do required initializations when it's imported
 and provide following global functions:
 
-* `plugin_init(opts)`: called on plugin init, `opts` holds a tuple of
-  (key, value) 2-tuples with all `plugin_opt_` params from mosquitto
+* `plugin_init(options)`: called on plugin init, `options` is a dictionary
+  with all `plugin_opt_` params from mosquitto
   configuration (except `plugin_opt_pyplugin_module`)
 
-* `plugin_cleanup()`: called on plugin cleanup with no arguments
+* `plugin_cleanup(options)`: called on plugin cleanup, `options` is a dictionary
+  with all `plugin_opt_` params from mosquitto
+  configuration (except `plugin_opt_pyplugin_module`)
 
-* `unpwd_check(username, password)`: return `True` if given
-  username and password pair is allowed to log in
+* `basic_auth(client_id, username, password)`: return MOSQ_ERR_SUCCESS if given
+  client, username and password combination is allowed to log in
+  or MOSQ_ERR_PLUGIN_DEFER if another module should take care
 
 * `acl_check(client_id, username, topic, access, payload)`: return
-  `True` if given user is allowed to subscribe (`access =
+  MOSQ_ERR_SUCCESS if given user is allowed to subscribe (`access =
   mosquitto_pyplugin.MOSQ_ACL_SUBSCRIBE`), read (`access =
   mosquitto_pyplugin.MOSQ_ACL_READ`) or publish (`access =
   mosquitto_pyplugin.MOSQ_ACL_WRITE`) to given topic (see `mosquitto_pyplugin`
   module below). `payload` argument holds message payload as bytes, or
   `None` if not applicable.
+  Return MOSQ_ERR_PLUGIN_DEFER in case another plugin should take care
 
 * `psk_key_get(identity, hint)`: return `PSK` string (in hex format without heading 0x) if given
   identity and hint pair is allowed to connect else return `False` or `None`
-
-* `security_init(opts, reload)`: called on plugin init and on config
-  reload
-
-* `security_cleanup(reload)`: called on plugin cleanup and on config
-  reload
 
 Auxiliary module
 ================

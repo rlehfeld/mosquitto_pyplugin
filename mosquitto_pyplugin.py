@@ -28,6 +28,8 @@ class MosquittoCallbackHandler(object):
                 module.plugin_init(options)
             self._modules.append(module)
 
+        return self.user_data
+
     def unpwd_check(self, username, password):
         for module in self._modules:
             if hasattr(module, 'unpwd_check'):
@@ -37,11 +39,13 @@ class MosquittoCallbackHandler(object):
         return lib.MOSQ_ERR_PLUGIN_DEFER
 
 
-_HANDLER = MosquittoCallbackHandler()
+_HANDLER = []
 
 
-def gethandler():
-    return _HANDLER
+def newhandler():
+    handler = MosquittoCallbackHandler()
+    _HANDLER.append(handler)
+    return handler
 
 
 def log(loglevel, message):

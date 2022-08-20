@@ -16,7 +16,7 @@ with open(export_file) as f:
 
 ffibuilder.embedding_init_code(f"""
     from _{plugin} import ffi, lib
-    from {plugin} import gethandler
+    from {plugin} import newhandler
 
     # TODO: remove next line one implementation is done
     import sys
@@ -28,11 +28,10 @@ ffibuilder.embedding_init_code(f"""
 
     @ffi.def_extern()
     def _py_auth_plugin_init(plugin_opts, plugin_opt_count):
-        handler = gethandler()
+        handler = newhandler()
         plugin_options = ffi.unpack(plugin_opts, plugin_opt_count)
-        handler.plugin_init({{_to_string(o.key): _to_string(o.value)
-                              for o in plugin_options}})
-        return handler.user_data
+        return handler.plugin_init({{_to_string(o.key): _to_string(o.value)
+                                   for o in plugin_options}})
 
 
     @ffi.def_extern()

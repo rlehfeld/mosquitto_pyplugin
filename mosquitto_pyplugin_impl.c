@@ -23,7 +23,6 @@ struct pyplugin_data {
     void *user_data;
     PyObject *module;
     PyObject *plugin_cleanup_func;
-    PyObject *unpwd_check_func;
     PyObject *acl_check_func;
     PyObject *security_init_func;
     PyObject *security_cleanup_func;
@@ -131,7 +130,6 @@ CFFI_DLLEXPORT int mosquitto_auth_plugin_init(void **user_data, struct mosquitto
         die(true, "failed to import module: %s", data->module_name);
 
     data->plugin_cleanup_func = PyObject_GetAttrString(data->module, "plugin_cleanup");
-    data->unpwd_check_func = PyObject_GetAttrString(data->module, "unpwd_check");
     data->acl_check_func = PyObject_GetAttrString(data->module, "acl_check");
     data->security_init_func = PyObject_GetAttrString(data->module, "security_init");
     data->security_cleanup_func = PyObject_GetAttrString(data->module, "security_cleanup");
@@ -173,7 +171,6 @@ CFFI_DLLEXPORT int mosquitto_auth_plugin_cleanup(void *user_data, struct mosquit
 
     Py_DECREF(data->module);
     Py_XDECREF(data->plugin_cleanup_func);
-    Py_XDECREF(data->unpwd_check_func);
     Py_XDECREF(data->acl_check_func);
     Py_XDECREF(data->security_init_func);
     Py_XDECREF(data->security_cleanup_func);

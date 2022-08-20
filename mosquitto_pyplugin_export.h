@@ -30,6 +30,8 @@ const int MOSQ_LOG_UNSUBSCRIBE;
 
 void _mosq_log(int loglevel, char* message);
 bool _mosq_topic_matches_sub(char* sub, char* topic);
+int _mosq_kick_client_by_clientid(const char *client_id, bool with_will);
+int _mosq_kick_client_by_username(const char *client_username, bool with_will);
 
 extern "Python" void* _py_plugin_init(struct mosquitto_opt *options,
                                       int option_count);

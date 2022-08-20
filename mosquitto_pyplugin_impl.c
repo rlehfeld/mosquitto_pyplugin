@@ -56,6 +56,16 @@ static bool _mosq_topic_matches_sub(char* sub, char* topic)
     return res;
 }
 
+static int _mosq_kick_client_by_clientid(const char *client_id, bool with_will)
+{
+    return mosquitto_kick_client_by_clientid(client_id, with_will);
+}
+
+static int _mosq_kick_client_by_username(const char *client_username, bool with_will)
+{
+    return mosquitto_kick_client_by_username(client_username, with_will);
+}
+
 /* event callback methods */
 static int _py_basic_auth(void* user_data,
 			  const char* client_id,

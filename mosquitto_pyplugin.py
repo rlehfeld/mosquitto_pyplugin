@@ -71,8 +71,18 @@ def newhandler():
 
 
 def log(loglevel, message):
-    cstr = ffi.new("char[]", message.encode('UTF8'))
-    lib._mosq_log(loglevel, cstr)
+    message_cstr = ffi.new("char[]", message.encode('UTF8'))
+    lib._mosq_log(loglevel, message_cstr)
+
+
+def kick_client_by_clientid(client_id, with_will):
+    client_id_cstr = ffi.new("char[]", client_id.encode('UTF8'))
+    return _mosq_kick_client_by_clientid(client_id_cstr, with_will)
+
+
+def kick_client_by_username(client_username, with_will):
+    client_username_cstr = ffi.new("char[]", client_username.encode('UTF8'))
+    return _mosq_kick_client_by_username(client_username_cstr, with_will)
 
 
 def topic_matches_sub(sub, topic):

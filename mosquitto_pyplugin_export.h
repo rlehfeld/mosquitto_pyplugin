@@ -31,5 +31,7 @@ const int MOSQ_LOG_UNSUBSCRIBE;
 void _mosq_log(int loglevel, char* message);
 bool _mosq_topic_matches_sub(char* sub, char* topic);
 
-extern "Python" void* _py_auth_plugin_init(struct mosquitto_opt *auth_opts, int auth_opt_count);
-extern "Python" int _py_unpwd_check(void* user_data, const char* username, const char* password);
+extern "Python" void* _py_plugin_init(struct mosquitto_opt *options, int option_count);
+extern "Python" int _py_plugin_cleanup(void *user_data, struct mosquitto_opt *options, int option_count);
+extern "Python" int _py_basic_auth(void* user_data, const char *client_id, const char* username, const char* password);
+extern "Python" int _py_acl_check(void* user_data, const char* client_id, const char* username, const char *topic, int access, const unsigned char* payload, uint32_t payloadlen);

@@ -5,18 +5,12 @@ import importlib
 import sys
 
 
+_HANDLER = []
+
+
 class MosquittoCallbackHandler(object):
     def __init__(self):
-        self._userdata = ffi.new_handle(self)
         self._modules = []
-
-    @property
-    def user_data(self):
-        """
-        User Data used in the c-part which will be
-        passed to the mosquitto plugin interface
-        """
-        return self._userdata
 
     def plugin_init(self, options):
         modules = [v for k, v in options.items() if k == "pyplugin_module"]
@@ -30,18 +24,36 @@ class MosquittoCallbackHandler(object):
                     module = result
             self._modules.append(module)
 
-        return self.user_data
+        return lib.MOSQ_ERR_SUCCESS
 
-    def unpwd_check(self, username, password):
+    def plugin_cleanup(self, options):
+        options = {k: v for k, v in options.items() if k != "pyplugin_module"}
+
         for module in self._modules:
-            if hasattr(module, 'unpwd_check'):
-                result = module.unpwd_check(username, password)
+            if hasattr(module, 'plugin_cleanup'):
+                module.plugin_cleanup(options)
+
+        _HANDLER.remove(self)
+
+    def basic_auth(self, client_id, username, password):
+        for module in self._modules:
+            if hasattr(module, 'basic_auth'):
+                result = module.basic_auth(client_id, username, password)
                 if result != lib.MOSQ_ERR_PLUGIN_DEFER:
                     return result
+
         return lib.MOSQ_ERR_PLUGIN_DEFER
 
+    def acl_check(self, client_id, username, topic, access, payload):
+        for module in self._modules:
+            if hasattr(module, 'acl_check'):
+                result = module.acl_check(
+                    client_id, username, topic, access, payload
+                )
+                if result != lib.MOSQ_ERR_PLUGIN_DEFER:
+                    return result
 
-_HANDLER = []
+        return lib.MOSQ_ERR_PLUGIN_DEFER
 
 
 def newhandler():

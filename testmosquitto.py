@@ -1,21 +1,26 @@
 import mosquitto_pyplugin
 
 
-def plugin_init(opts):
+def plugin_init(options):
     mosquitto_pyplugin.log(
         mosquitto_pyplugin.MOSQ_LOG_INFO,
-        'plugin_init (opts: %r)' % (opts,)
+        'plugin_init (options: {})'.format(options)
     )
 
 
-def plugin_cleanup():
-    mosquitto_pyplugin.log(mosquitto_pyplugin.MOSQ_LOG_INFO, 'plugin_cleanup')
-
-
-def unpwd_check(username, password):
+def plugin_cleanup(options):
     mosquitto_pyplugin.log(
         mosquitto_pyplugin.MOSQ_LOG_INFO,
-        'unpwd_check (username: %s password: %s)' % (username, password)
+        'plugin_cleanup (options: {})'.format(options)
+    )
+
+
+def basic_auth(client_id, username, password):
+    mosquitto_pyplugin.log(
+        mosquitto_pyplugin.MOSQ_LOG_INFO,
+        'basic_auth (client_id: {} username: {} password: {})'.format(
+            client_id, username, password
+        )
     )
 
     return mosquitto_pyplugin.MOSQ_ERR_SUCCESS
@@ -24,7 +29,9 @@ def unpwd_check(username, password):
 def acl_check(client_id, username, topic, access, payload):
     mosquitto_pyplugin.log(
         mosquitto_pyplugin.MOSQ_LOG_INFO,
-        'acl_check %r' % (mosquitto_pyplugin.topic_matches_sub('/#', topic))
+        'acl_check {}'.format(
+            mosquitto_pyplugin.topic_matches_sub('/#', topic)
+        )
     )
 
     if access == mosquitto_pyplugin.MOSQ_ACL_READ:
@@ -48,26 +55,12 @@ def acl_check(client_id, username, topic, access, payload):
             'access: {}, payload: {!r})'
             .format(client_id, username, topic, access, payload)
         )
-    return True
+    return mosquitto_pyplugin.MOSQ_ERR_SUCCESS
 
 
 def psk_key_get(identity, hint):
     mosquitto_pyplugin.log(
         mosquitto_pyplugin.MOSQ_LOG_INFO,
-        'psk_key_get (identity: %s hint: %s)' % (identity, hint)
+        'psk_key_get (identity: {} hint: {})'.format(identity, hint)
     )
     return '0123456789'
-
-
-def security_init(opts, reload):
-    mosquitto_pyplugin.log(
-        mosquitto_pyplugin.MOSQ_LOG_INFO,
-        'security_init (reload: %s, opts: %s)' % (reload, opts)
-    )
-
-
-def security_cleanup(reload):
-    mosquitto_pyplugin.log(
-        mosquitto_pyplugin.MOSQ_LOG_INFO,
-        'security_cleanup (reload: %s)' % (reload)
-    )

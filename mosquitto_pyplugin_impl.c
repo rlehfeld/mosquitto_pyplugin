@@ -20,6 +20,7 @@
 
 struct pyplugin_data {
     char *module_name;
+    void *user_data;
     PyObject *module;
     PyObject *plugin_cleanup_func;
     PyObject *unpwd_check_func;
@@ -29,7 +30,7 @@ struct pyplugin_data {
     PyObject *psk_key_get_func;
 };
 
-#define unused  __attribute__((unused))
+#define _UNUSED_ATR  __attribute__((unused))
 
 #ifdef PYPLUGIN_DEBUG
 __attribute__((format(printf, 1, 2)))
@@ -42,7 +43,7 @@ static void debug(const char *fmt, ...)
     fputc('\n', stderr);
 }
 #else
-static void debug(const char *fmt unused, ...)
+static void debug(const char *fmt _UNUSED_ATR, ...)
 {
 }
 #endif
@@ -104,6 +105,8 @@ static PyObject *make_auth_opts_tuple(struct mosquitto_opt *auth_opts, int auth_
     return optlist;
 }
 
+static void* _py_auth_plugin_init(struct mosquitto_opt *auth_opts, int auth_opt_count);
+
 CFFI_DLLEXPORT int mosquitto_auth_plugin_init(void **user_data, struct mosquitto_opt *auth_opts, int auth_opt_count)
 {
     struct pyplugin_data *data = calloc(1, sizeof(*data));
@@ -118,11 +121,10 @@ CFFI_DLLEXPORT int mosquitto_auth_plugin_init(void **user_data, struct mosquitto
     if (NULL == data->module_name)
         die(false, "pyplugin_module config param missing");
 
-    if (!cffi_start_python())
+    if (cffi_start_python())
         die(false, "failed to start python");
 
-    if (NULL == PyImport_ImportModule(PLUGIN_NAME))
-        die(true, "failed to import module: %s", PLUGIN_NAME);
+    data->user_data = _py_auth_plugin_init(auth_opts, auth_opt_count);
 
     data->module = PyImport_ImportModule(data->module_name);
     if (NULL == data->module)
@@ -156,7 +158,7 @@ CFFI_DLLEXPORT int mosquitto_auth_plugin_init(void **user_data, struct mosquitto
     return MOSQ_ERR_SUCCESS;
 }
 
-CFFI_DLLEXPORT int mosquitto_auth_plugin_cleanup(void *user_data, struct mosquitto_opt *auth_opts unused, int auth_opt_count unused)
+CFFI_DLLEXPORT int mosquitto_auth_plugin_cleanup(void *user_data, struct mosquitto_opt *auth_opts _UNUSED_ATR, int auth_opt_count _UNUSED_ATR)
 {
     struct pyplugin_data *data = user_data;
 
@@ -213,7 +215,7 @@ err_no_optlist:
     return MOSQ_ERR_UNKNOWN;
 }
 
-CFFI_DLLEXPORT int mosquitto_auth_security_cleanup(void *user_data, struct mosquitto_opt *auth_opts unused, int auth_opt_count unused, bool reload)
+CFFI_DLLEXPORT int mosquitto_auth_security_cleanup(void *user_data, struct mosquitto_opt *auth_opts _UNUSED_ATR, int auth_opt_count _UNUSED_ATR, bool reload)
 {
     struct pyplugin_data *data = user_data;
 
@@ -261,32 +263,16 @@ CFFI_DLLEXPORT int mosquitto_auth_acl_check(void *user_data, int access, struct 
     return ok ? MOSQ_ERR_SUCCESS : MOSQ_ERR_ACL_DENIED;
 }
 
-CFFI_DLLEXPORT int mosquitto_auth_unpwd_check(void *user_data, struct mosquitto *client unused, const char *username, const char *password)
+static int _py_unpwd_check(void* user_data, const char* username, const char* password);
+
+CFFI_DLLEXPORT int mosquitto_auth_unpwd_check(void *user_data, struct mosquitto *client _UNUSED_ATR, const char *username, const char *password)
 {
     struct pyplugin_data *data = user_data;
-
-    if (NULL == username || NULL == password)
-        return MOSQ_ERR_AUTH;
-
-    debug("mosquitto_auth_unpwd_check: username=%s, password=%s", username, password);
-
-    if (NULL == data->unpwd_check_func)
-        return MOSQ_ERR_AUTH;
-
-    PyObject *res = PyObject_CallFunction(data->unpwd_check_func, "ss", username, password);
-    if (NULL == res) {
-        PyErr_Print();
-        return MOSQ_ERR_UNKNOWN;
-    }
-
-    int ok = PyObject_IsTrue(res);
-    Py_DECREF(res);
-
-    return ok ? MOSQ_ERR_SUCCESS : MOSQ_ERR_AUTH;
+    return _py_unpwd_check(data->user_data, username, password);
 }
 
 CFFI_DLLEXPORT int mosquitto_auth_psk_key_get(void *user_data,
-					      struct mosquitto *client unused,
+					      struct mosquitto *client _UNUSED_ATR,
 					      const char *hint,
 					      const char *identity,
 					      char *key,

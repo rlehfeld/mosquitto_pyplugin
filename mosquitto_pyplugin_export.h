@@ -1,7 +1,24 @@
+struct mosquitto;
+
+struct mosquitto_opt {
+	char *key;
+	char *value;
+};
+
+struct mosquitto_auth_opt {
+	char *key;
+	char *value;
+};
+
 const int MOSQ_ACL_NONE;
 const int MOSQ_ACL_SUBSCRIBE;
 const int MOSQ_ACL_READ;
 const int MOSQ_ACL_WRITE;
+
+const int MOSQ_ERR_SUCCESS;
+const int MOSQ_ERR_PLUGIN_DEFER;
+const int MOSQ_ERR_AUTH;
+const int MOSQ_ERR_UNKNOWN;
 
 const int MOSQ_LOG_INFO;
 const int MOSQ_LOG_NOTICE;
@@ -13,3 +30,6 @@ const int MOSQ_LOG_UNSUBSCRIBE;
 
 void _mosq_log(int loglevel, char* message);
 bool _mosq_topic_matches_sub(char* sub, char* topic);
+
+extern "Python" void* _py_auth_plugin_init(struct mosquitto_opt *auth_opts, int auth_opt_count);
+extern "Python" int _py_unpwd_check(void* user_data, const char* username, const char* password);

@@ -18,7 +18,7 @@ def unpwd_check(username, password):
         'unpwd_check (username: %s password: %s)' % (username, password)
     )
 
-    return True
+    return mosquitto_pyplugin.MOSQ_ERR_SUCCESS
 
 
 def acl_check(client_id, username, topic, access, payload):
@@ -30,19 +30,22 @@ def acl_check(client_id, username, topic, access, payload):
     if access == mosquitto_pyplugin.MOSQ_ACL_READ:
         mosquitto_pyplugin.log(
             mosquitto_pyplugin.MOSQ_LOG_INFO,
-            'acl_check READ (client_id: {} username: {} topic: {} access: {}, payload: {!r})'
+            'acl_check READ (client_id: {} username: {} topic: {} '
+            'access: {}, payload: {!r})'
             .format(client_id, username, topic, access, payload)
         )
     elif access == mosquitto_pyplugin.MOSQ_ACL_SUBSCRIBE:
         mosquitto_pyplugin.log(
             mosquitto_pyplugin.MOSQ_LOG_INFO,
-            'acl_check SUBSCRIBE (client_id: {} username: {} topic: {} access: {}, payload: {!r})'
+            'acl_check SUBSCRIBE (client_id: {} username: {} topic: {} '
+            'access: {}, payload: {!r})'
             .format(client_id, username, topic, access, payload)
         )
     elif access == mosquitto_pyplugin.MOSQ_ACL_WRITE:
         mosquitto_pyplugin.log(
             mosquitto_pyplugin.MOSQ_LOG_INFO,
-            'acl_check WRITE (client_id: {} username: {} topic: {} access: {}, payload: {!r})'
+            'acl_check WRITE (client_id: {} username: {} topic: {} '
+            'access: {}, payload: {!r})'
             .format(client_id, username, topic, access, payload)
         )
     return True

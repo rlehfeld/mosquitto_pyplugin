@@ -25,7 +25,9 @@ class MosquittoCallbackHandler(object):
         for m in modules:
             module = importlib.import_module(m)
             if hasattr(module, 'plugin_init'):
-                module.plugin_init(options)
+                result = module.plugin_init(options)
+                if result:
+                    module = result
             self._modules.append(module)
 
         return self.user_data

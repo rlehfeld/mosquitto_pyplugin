@@ -16,7 +16,7 @@ with open(export_file) as f:
 
 ffibuilder.embedding_init_code(f"""
     from _{plugin} import ffi, lib
-    from {plugin} import newhandler, _to_string
+    from {plugin} import _newhandler, _to_string
 
 
     _HANDLER = []
@@ -24,7 +24,7 @@ ffibuilder.embedding_init_code(f"""
 
     @ffi.def_extern()
     def _py_plugin_init(options, option_count):
-        handler = newhandler()
+        handler = _newhandler()
         plugin_options = ffi.unpack(options, option_count)
         res = handler.plugin_init({{_to_string(o.key): _to_string(o.value)
                                   for o in plugin_options}})

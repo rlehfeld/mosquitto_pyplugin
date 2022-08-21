@@ -66,18 +66,18 @@ and provide following global functions:
   with all `plugin_opt_` params from mosquitto
   configuration (except `plugin_opt_pyplugin_module`)
 
-* `basic_auth(client_id, username, password)`: return MOSQ_ERR_SUCCESS if given
+* `basic_auth(client, username, password)`: return mosquitto_pyplugin.MOSQ_ERR_SUCCESS if given
   client, username and password combination is allowed to log in
-  or MOSQ_ERR_PLUGIN_DEFER if another module should take care
+  or mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER if another module should take care
 
-* `acl_check(client_id, username, topic, access, payload)`: return
+* `acl_check(client, topic, access, payload)`: return
   MOSQ_ERR_SUCCESS if given user is allowed to subscribe (`access =
   mosquitto_pyplugin.MOSQ_ACL_SUBSCRIBE`), read (`access =
   mosquitto_pyplugin.MOSQ_ACL_READ`) or publish (`access =
   mosquitto_pyplugin.MOSQ_ACL_WRITE`) to given topic (see `mosquitto_pyplugin`
   module below). `payload` argument holds message payload as bytes, or
   `None` if not applicable.
-  Return MOSQ_ERR_PLUGIN_DEFER in case another plugin should take care
+  Return mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER in case another plugin should take care
 
 * `psk_key_get(identity, hint)`: return `PSK` string (in hex format without heading 0x) if given
   identity and hint pair is allowed to connect else return `False` or `None`
@@ -91,13 +91,26 @@ Plugin module can import an auxiliary module provided by mosquitto:
 
 The module provides following function:
 
+* `log(loglevel, message)`: log `message` into mosquitto's log
+  file with the given `loglevel` (one of the constants below).
+* `client_address(client)`: get client address from `client`
+  handle
+* `client_id(client)`: get client id from `client` handle
+* `client_protocol(client)`: get used client protocol from
+  `client` handle
+* `client_protocol_version(client)`: get used client protocol
+  version from `client` handle
+* `client_username(client)`: get client username from `client`
+  handle
+* `set_username(client, username)`: change client username
+  in `client` handle to `username`
+* `kick_client_by_clientid(client_id, with_will)`:
+* `kick_client_by_username(client_username, with_will)`:
 * `topic_matches_sub(sub, topic)`: it mirrors
   `mosquitto_topic_matches_sub` from libmosquitto C library - the
   function checks whether `topic` matches given `sub` pattern (for
   example, it returns `True` if `sub` is `/foo/#` and `topic` is
   `/foo/bar`) and is mostly useful is `acl_check` function above
-* `Log(loglevel, message)`: log `message` into mosquitto's log
-  file with the given `loglevel` (one of the constants below).
 
 The following constants for `access` parameter in `acl_check` are
 provided:
@@ -116,3 +129,12 @@ The following constants for `loglevel` parameter in `Log` are provided:
 * `MOSQ_LOG_DEBUG`
 * `MOSQ_LOG_SUBSCRIBE` (not recommended for use by plugins)
 * `MOSQ_LOG_UNSUBSCRIBE` (not recommended for use by plugins)
+
+The following constants for `errors` are provided:
+
+* `MOSQ_ERR_SUCCESS`
+* `MOSQ_ERR_INVAL`
+* `MOSQ_ERR_NOMEM`
+* `MOSQ_ERR_AUTH`
+* `MOSQ_ERR_UNKNOWN`
+* `MOSQ_ERR_PLUGIN_DEFER`

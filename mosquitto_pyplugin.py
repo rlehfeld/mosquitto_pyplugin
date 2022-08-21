@@ -60,7 +60,7 @@ class MosquittoCallbackHandler(object):
         return lib.MOSQ_ERR_PLUGIN_DEFER
 
 
-def newhandler():
+def _newhandler():
     handler = MosquittoCallbackHandler()
     _HANDLER.append(handler)
     return handler

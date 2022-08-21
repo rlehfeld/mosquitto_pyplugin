@@ -60,6 +60,18 @@ class MosquittoCallbackHandler(object):
         return lib.MOSQ_ERR_PLUGIN_DEFER
 
 
+    def psk_key(self, client, identity, hint):
+        for module in self._modules:
+            if hasattr(module, 'psk_key'):
+                psk = module.psk_key(
+                    client, identity, hint
+                )
+                if psk is not None:
+                    return psk
+
+        return None
+
+
 def _newhandler():
     handler = MosquittoCallbackHandler()
     _HANDLER.append(handler)

@@ -61,6 +61,25 @@ ffibuilder.embedding_init_code(f"""
         else:
             payload = bytes(ffi.unpack(payload, payloadlen))
         return obj.acl_check(client, topic, access, payload)
+
+
+    @ffi.def_extern()
+    def _py_psk_key(user_data, client, identity, hint,
+                    key, max_key_len):
+        obj = ffi.from_handle(user_data)
+        identity = _to_string(identity)
+        hint = _to_string(hint)
+        psk = obj.psk_key(client, identity, hint)
+        if psk is None:
+            return lib.MOSQ_ERR_PLUGIN_DEFER
+        if not psk:
+            return lib.MOSQ_ERR_AUTH
+        psk_encoded = ret.encode('UTF8')
+        if len(key_ret) >= max_key_len:
+            return lib.MOSQ_ERR_AUTH
+        psk_cstr = ffi.new("char[]", psk_encoded)
+        lib.strncpy(key, psk_cstr, max_key_len)
+        return lib.MOSQ_ERR_SUCCESS
 """)
 
 ffibuilder.compile(target=f"{plugin}.*", verbose=True)

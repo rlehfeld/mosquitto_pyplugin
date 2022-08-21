@@ -40,6 +40,7 @@ int _mosq_set_username(struct mosquitto *client, const char *username);
 int _mosq_kick_client_by_clientid(const char *client_id, bool with_will);
 int _mosq_kick_client_by_username(const char *client_username, bool with_will);
 bool _mosq_topic_matches_sub(char* sub, char* topic);
+char *strncpy(char *dest, const char *src, size_t n);
 
 extern "Python" void* _py_plugin_init(struct mosquitto_opt *options,
                                       int option_count);
@@ -56,3 +57,9 @@ extern "Python" int _py_acl_check(void* user_data,
                                   int access,
                                   const unsigned char* payload,
                                   uint32_t payloadlen);
+extern "Python" int _py_psk_key(void* user_data,
+                                const struct mosquitto* client,
+                                const char *identity,
+                                const char *hint,
+                                char *key,
+                                int max_key_len);

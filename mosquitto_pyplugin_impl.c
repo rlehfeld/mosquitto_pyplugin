@@ -101,7 +101,7 @@ static int _py_basic_auth(void* user_data,
                           const struct mosquitto* client,
                           const char* username,
                           const char* password);
-static int handle_basic_auth(int event, void *event_data, void *user_data)
+static int handle_basic_auth(int event _UNUSED_ATR, void *event_data, void *user_data)
 {
     struct pyplugin_data *data = user_data;
     struct mosquitto_evt_basic_auth *basic_auth_event = event_data;
@@ -118,7 +118,7 @@ static int _py_acl_check(void* user_data,
                          int access,
                          const unsigned char* payload,
                          uint32_t payloadlen);
-static int handle_acl_check(int event, void *event_data, void *user_data)
+static int handle_acl_check(int event _UNUSED_ATR, void *event_data, void *user_data)
 {
     struct pyplugin_data *data = user_data;
     struct mosquitto_evt_acl_check *acl_check_event = event_data;
@@ -130,6 +130,26 @@ static int handle_acl_check(int event, void *event_data, void *user_data)
                          acl_check_event->payload,
                          acl_check_event->payloadlen);
 }
+
+static int _py_psk_key(void* user_data,
+                       const struct mosquitto* client,
+                       const char *identity,
+                       const char *hint,
+                       char *key,
+                       int max_key_len);
+static int handle_psk_key(int event _UNUSED_ATR, void *event_data, void *user_data)
+{
+    struct pyplugin_data *data = user_data;
+    struct mosquitto_evt_psk_key *psk_key_event = event_data;
+
+    return _py_psk_key(data->user_data,
+                       psk_key_event->client,
+                       psk_key_event->hint,
+                       psk_key_event->identity,
+                       psk_key_event->key,
+                       psk_key_event->max_key_len);
+}
+
 
 /* Plugin entry points */
 
@@ -181,6 +201,11 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
                                 handle_acl_check,
                                 NULL,
                                 data);
+    mosquitto_callback_register(identifier,
+                                MOSQ_EVT_PSK_KEY,
+                                handle_psk_key,
+                                NULL,
+                                data);
 
     *userdata = data;
 
@@ -193,6 +218,7 @@ CFFI_DLLEXPORT int mosquitto_plugin_cleanup(void *user_data,
                                             int option_count)
 {
     struct pyplugin_data *data = user_data;
+
     mosquitto_callback_unregister(data->identifier,
                                   MOSQ_EVT_BASIC_AUTH,
                                   handle_basic_auth,
@@ -201,67 +227,10 @@ CFFI_DLLEXPORT int mosquitto_plugin_cleanup(void *user_data,
                                   MOSQ_EVT_ACL_CHECK,
                                   handle_acl_check,
                                   NULL);
+    mosquitto_callback_unregister(data->identifier,
+                                  MOSQ_EVT_PSK_KEY,
+                                  handle_psk_key,
+                                  NULL);
+
     return _py_plugin_cleanup(data->user_data, options, option_count);
 }
-
-// TODO: old interfaces, still need to be removed
-
-#if 0
-CFFI_DLLEXPORT int mosquitto_auth_psk_key_get(void *user_data,
-                                              struct mosquitto *client _UNUSED_ATR,
-                                              const char *hint,
-                                              const char *identity,
-                                              char *key,
-                                              int max_key_len)
-{
-    struct pyplugin_data *data = user_data;
-    char psk[max_key_len];
-
-    if (NULL == identity)
-        return MOSQ_ERR_AUTH;
-
-    debug("mosquitto_auth_psk_key_get: identity=%s, hint=%s", identity, hint);
-
-    if (NULL == data->psk_key_get_func)
-        return MOSQ_ERR_AUTH;
-
-    PyObject *res = PyObject_CallFunction(data->psk_key_get_func, "ss", identity, hint);
-    if (NULL == res) {
-        PyErr_Print();
-        return MOSQ_ERR_UNKNOWN;
-    }
-
-    if (res == Py_None || !PyObject_IsTrue(res)) {
-        goto error;
-    }
-
-    if (!PyBytes_Check(res)) {
-        PyObject *res2 = PyUnicode_AsASCIIString(res);
-        if (NULL == res2)
-            goto error;
-        Py_DECREF(res);
-        res = res2;
-    }
-
-    int len = snprintf(psk, sizeof(psk), "%s", PyBytes_AsString(res));
-    if (len < 0) {
-        fprintf(stderr, "mosquitto_auth_psk_key_get: copy psk failed\n");
-        goto error;
-    }
-
-    if (len > max_key_len) {
-        fprintf(stderr, "mosquitto_auth_psk_key_get: psk length [%d] > max_key_len [%d]\n", len, max_key_len);
-        goto error;
-    }
-
-    debug("mosquitto_auth_psk_key_get: psk=%s", psk);
-    strncpy(key, psk, max_key_len);
-    Py_DECREF(res);
-
-    return MOSQ_ERR_SUCCESS;
-
-error:
-    Py_DECREF(res);
-    return MOSQ_ERR_AUTH;
-}
-#endif

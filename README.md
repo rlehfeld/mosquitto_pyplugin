@@ -80,7 +80,7 @@ and provide following global functions:
   Return mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER in case another plugin should take care
 
 * `psk_key(client, identity, hint)`: return `PSK` string (in hex format without heading 0x) if given
-  identity and hint pair is allowed to connect else return "" for returning MOSQ_ERR_AUTH or `None`
+  identity and hint pair is allowed to connect else return `""` for returning MOSQ_ERR_AUTH or `None`
   for returning MOSQ_ERR_PLUGIN_DEFER to mosquitto.
 
 Auxiliary module

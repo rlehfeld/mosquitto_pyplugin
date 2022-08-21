@@ -1,11 +1,15 @@
 from _mosquitto_pyplugin import ffi, lib
 import importlib
 
-# TODO: remove next line once implementation is done
-import sys
-
 
 _HANDLER = []
+
+
+def _to_string(cstr):
+    if cstr is None or cstr == ffi.NULL:
+        return None
+    else:
+        return ffi.string(cstr).decode('utf8')
 
 
 class MosquittoCallbackHandler(object):
@@ -35,28 +39,20 @@ class MosquittoCallbackHandler(object):
 
         _HANDLER.remove(self)
 
-    def basic_auth(self, client_id, username, password,
-                   client_address, client_protocol,
-                   client_protocol_version):
+    def basic_auth(self, client, username, password):
         for module in self._modules:
             if hasattr(module, 'basic_auth'):
-                result = module.basic_auth(client_id, username, password,
-                                           client_address, client_protocol,
-                                           client_protocol_version)
+                result = module.basic_auth(client, username, password)
                 if result != lib.MOSQ_ERR_PLUGIN_DEFER:
                     return result
 
         return lib.MOSQ_ERR_PLUGIN_DEFER
 
-    def acl_check(self, client_id, client_username,
-                  client_address, client_protocol,
-		  client_protocol_version, topic, access, payload):
+    def acl_check(self, client, topic, access, payload):
         for module in self._modules:
             if hasattr(module, 'acl_check'):
                 result = module.acl_check(
-                    client_id, client_username, client_address,
-                    client_protocol, client_protocol_version,
-                    topic, access, payload,
+                    client, topic, access, payload,
                 )
                 if result != lib.MOSQ_ERR_PLUGIN_DEFER:
                     return result
@@ -75,14 +71,39 @@ def log(loglevel, message):
     lib._mosq_log(loglevel, message_cstr)
 
 
+def client_address(client):
+    return _to_string(lib._mosq_client_address(client))
+
+
+def client_id(client):
+    return _to_string(lib._mosq_client_id(client))
+
+
+def client_protocol(client):
+    return lib._mosq_client_protocol(client)
+
+
+def client_protocol_version(client):
+    return lib._mosq_client_protocol_version(client)
+
+
+def client_username(client):
+    return _to_string(lib._mosq_client_username(client))
+
+
+def set_username(client, username):
+    username_cstr = ffi.new("char[]", username.encode('UTF8'))
+    return lib._mosq_set_username(client, username_cstr)
+
+
 def kick_client_by_clientid(client_id, with_will):
     client_id_cstr = ffi.new("char[]", client_id.encode('UTF8'))
-    return _mosq_kick_client_by_clientid(client_id_cstr, with_will)
+    return lib._mosq_kick_client_by_clientid(client_id_cstr, with_will)
 
 
 def kick_client_by_username(client_username, with_will):
     client_username_cstr = ffi.new("char[]", client_username.encode('UTF8'))
-    return _mosq_kick_client_by_username(client_username_cstr, with_will)
+    return lib._mosq_kick_client_by_username(client_username_cstr, with_will)
 
 
 def topic_matches_sub(sub, topic):

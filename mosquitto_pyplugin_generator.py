@@ -16,18 +16,10 @@ with open(export_file) as f:
 
 ffibuilder.embedding_init_code(f"""
     from _{plugin} import ffi, lib
-    from {plugin} import newhandler
+    from {plugin} import newhandler, _to_string
 
-    # TODO: remove next line one implementation is done
-    import sys
 
     _HANDLER = []
-
-    def _to_string(cstr):
-        if cstr == None or cstr == ffi.NULL:
-            return None
-        else:
-            return ffi.string(cstr).decode('utf8')
 
 
     @ffi.def_extern()
@@ -53,36 +45,22 @@ ffibuilder.embedding_init_code(f"""
 
 
     @ffi.def_extern()
-    def _py_basic_auth(user_data, client_id, username, password,
-                       client_address, client_protocol,
-                       client_protocol_version):
+    def _py_basic_auth(user_data, client, username, password):
         obj = ffi.from_handle(user_data)
-        client_id = _to_string(client_id)
         username = _to_string(username)
         password = _to_string(password)
-        client_address = _to_string(client_address)
-        return obj.basic_auth(client_id, username, password,
-                              client_address, client_protocol,
-                              client_protocol_version)
+        return obj.basic_auth(client, username, password)
 
 
     @ffi.def_extern()
-    def _py_acl_check(user_data, client_id, client_username,
-                      client_address, client_protocol,
-                      client_protocol_version,
-                      topic, access, payload, payloadlen):
+    def _py_acl_check(user_data, client, topic, access, payload, payloadlen):
         obj = ffi.from_handle(user_data)
-        client_id = _to_string(client_id)
-        client_username = _to_string(client_username)
-        client_address = _to_string(client_address)
         topic = _to_string(topic)
         if payload is None or payload == ffi.NULL:
             payload = None
         else:
             payload = bytes(ffi.unpack(payload, payloadlen))
-        return obj.acl_check(client_id, client_username, client_address,
-                             client_protocol, client_protocol_version, topic,
-                             access, payload)
+        return obj.acl_check(client, topic, access, payload)
 """)
 
 ffibuilder.compile(target=f"{plugin}.*", verbose=True)

@@ -28,9 +28,7 @@ def plugin_init(options):
     )
 
 
-def basic_auth(client_id, username, password,
-               client_address, client_protocol,
-               client_protocol_version):
+def basic_auth(client, username, password):
     import mosquitto_pyplugin
     val = redis_conn.hget(f'mosq.{username}', 'auth')
     if not val:
@@ -51,8 +49,8 @@ def basic_auth(client_id, username, password,
         return mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER
 
 
-def acl_check(client_id, client_username, client_address, client_protocol,
-              client_protocol_version, topic, access, payload):
+def acl_check(client, topic, access, payload):
+    client_username = mosquitto_pyplugin.client_username(client)
     if client_username is None:
         mosquitto_pyplugin.log(
             mosquitto_pyplugin.MOSQ_LOG_INFO,

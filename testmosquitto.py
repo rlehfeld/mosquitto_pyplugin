@@ -15,9 +15,13 @@ def plugin_cleanup(options):
     )
 
 
-def basic_auth(client_id, username, password,
-               client_address, client_protocol,
-               client_protocol_version):
+def basic_auth(client, username, password):
+    client_id = mosquitto_pyplugin.client_id(client)
+    client_address = mosquitto_pyplugin.client_address(client)
+    client_protocol = mosquitto_pyplugin.client_protocol(client)
+    client_protocol_version = mosquitto_pyplugin.client_protocol_version(
+        client
+    )
     mosquitto_pyplugin.log(
         mosquitto_pyplugin.MOSQ_LOG_INFO,
         'basic_auth (client_id: {} username: {} password: {} '
@@ -31,8 +35,14 @@ def basic_auth(client_id, username, password,
     return mosquitto_pyplugin.MOSQ_ERR_SUCCESS
 
 
-def acl_check(client_id, client_username, client_address, client_protocol,
-              client_protocol_version, topic, access, payload):
+def acl_check(client, topic, access, payload):
+    client_id = mosquitto_pyplugin.client_id(client)
+    client_username = mosquitto_pyplugin.client_username(client)
+    client_address = mosquitto_pyplugin.client_address(client)
+    client_protocol = mosquitto_pyplugin.client_protocol(client)
+    client_protocol_version = mosquitto_pyplugin.client_protocol_version(
+        client
+    )
     mosquitto_pyplugin.log(
         mosquitto_pyplugin.MOSQ_LOG_INFO,
         'acl_check {}'.format(

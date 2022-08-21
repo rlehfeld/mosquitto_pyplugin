@@ -49,11 +49,34 @@ static void _mosq_log(int loglevel, char* message)
     mosquitto_log_printf(loglevel, "%s", message);
 }
 
-static bool _mosq_topic_matches_sub(char* sub, char* topic)
+static const char *_mosq_client_address(const struct mosquitto *client)
 {
-    bool res = false;
-    mosquitto_topic_matches_sub(sub, topic, &res);
-    return res;
+    return mosquitto_client_address(client);
+}
+
+static const char *_mosq_client_id(const struct mosquitto *client)
+{
+    return mosquitto_client_id(client);
+}
+
+static int _mosq_client_protocol(const struct mosquitto *client)
+{
+    return mosquitto_client_protocol(client);
+}
+
+static int _mosq_client_protocol_version(const struct mosquitto *client)
+{
+    return mosquitto_client_protocol_version(client);
+}
+
+static const char *_mosq_client_username(const struct mosquitto *client)
+{
+    return mosquitto_client_username(client);
+}
+
+static int _mosq_set_username(struct mosquitto *client, const char *username)
+{
+    return mosquitto_set_username(client, username);
 }
 
 static int _mosq_kick_client_by_clientid(const char *client_id, bool with_will)
@@ -66,58 +89,42 @@ static int _mosq_kick_client_by_username(const char *client_username, bool with_
     return mosquitto_kick_client_by_username(client_username, with_will);
 }
 
+static bool _mosq_topic_matches_sub(char* sub, char* topic)
+{
+    bool res = false;
+    mosquitto_topic_matches_sub(sub, topic, &res);
+    return res;
+}
+
 /* event callback methods */
 static int _py_basic_auth(void* user_data,
-			  const char* client_id,
-			  const char* username,
-			  const char* password,
-			  const char* client_address,
-			  int client_protocol,
-			  int client_protocol_version);
+                          const struct mosquitto* client,
+                          const char* username,
+                          const char* password);
 static int handle_basic_auth(int event, void *event_data, void *user_data)
 {
     struct pyplugin_data *data = user_data;
     struct mosquitto_evt_basic_auth *basic_auth_event = event_data;
-    const char *client_id = mosquitto_client_id(basic_auth_event->client);
-    const char *client_address = mosquitto_client_address(basic_auth_event->client);
-    int client_protocol = mosquitto_client_protocol(basic_auth_event->client);
-    int client_protocol_version = mosquitto_client_protocol_version(basic_auth_event->client);
 
     return _py_basic_auth(data->user_data,
-                          client_id,
+                          basic_auth_event->client,
                           basic_auth_event->username,
-                          basic_auth_event->password,
-			  client_address,
-			  client_protocol,
-			  client_protocol_version);
+                          basic_auth_event->password);
 }
 
 static int _py_acl_check(void* user_data,
-			 const char* client_id,
-			 const char* client_username,
-			 const char* client_address,
-			 int client_protocol,
-			 int client_protocol_version,
-			 const char *topic,
-			 int access,
-			 const unsigned char* payload,
-			 uint32_t payloadlen);
+                         const struct mosquitto* client,
+                         const char *topic,
+                         int access,
+                         const unsigned char* payload,
+                         uint32_t payloadlen);
 static int handle_acl_check(int event, void *event_data, void *user_data)
 {
     struct pyplugin_data *data = user_data;
     struct mosquitto_evt_acl_check *acl_check_event = event_data;
-    const char *client_id = mosquitto_client_id(acl_check_event->client);
-    const char *client_username = mosquitto_client_username(acl_check_event->client);
-    const char *client_address = mosquitto_client_address(acl_check_event->client);
-    int client_protocol = mosquitto_client_protocol(acl_check_event->client);
-    int client_protocol_version = mosquitto_client_protocol_version(acl_check_event->client);
 
     return _py_acl_check(data->user_data,
-                         client_id,
-                         client_username,
-			 client_address,
-			 client_protocol,
-			 client_protocol_version,
+                         acl_check_event->client,
                          acl_check_event->topic,
                          acl_check_event->access,
                          acl_check_event->payload,

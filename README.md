@@ -97,6 +97,8 @@ The module provides following function:
 * `client_address(client)`: get client address from `client`
   handle
 * `client_id(client)`: get client id from `client` handle
+* `client_certificate(client)`: get the client certificate
+  from the `client` handle
 * `client_protocol(client)`: get used client protocol from
   `client` handle
 * `client_protocol_version(client)`: get used client protocol

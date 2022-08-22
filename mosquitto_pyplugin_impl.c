@@ -7,6 +7,9 @@
 #include <mosquitto.h>
 #include <mosquitto_plugin.h>
 #include <mosquitto_broker.h>
+#include <openssl/x509.h>
+#include <openssl/bio.h>
+#include <openssl/pem.h>
 
 struct pyplugin_data {
     mosquitto_plugin_id_t *identifier;
@@ -14,22 +17,6 @@ struct pyplugin_data {
 };
 
 #define _UNUSED_ATR  __attribute__((unused))
-
-#ifdef PYPLUGIN_DEBUG
-__attribute__((format(printf, 1, 2)))
-static void debug(const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    va_end(ap);
-    fputc('\n', stderr);
-}
-#else
-static void debug(const char *fmt _UNUSED_ATR, ...)
-{
-}
-#endif
 
 __attribute__((format(printf, 2, 3)))
 static void die(bool print_exception, const char *fmt, ...)
@@ -57,6 +44,29 @@ static const char *_mosq_client_address(const struct mosquitto *client)
 static const char *_mosq_client_id(const struct mosquitto *client)
 {
     return mosquitto_client_id(client);
+}
+
+static char* _mosq_client_certificate(const struct mosquitto *client)
+{
+    X509* cert = mosquitto_client_certificate(client);
+    if (NULL == cert)
+        return NULL;
+
+    BIO *mem = BIO_new(BIO_s_mem());
+    PEM_write_bio_X509(mem, cert);
+
+    BUF_MEM *bptr;
+    BIO_get_mem_ptr(mem, &bptr);
+
+    char* result = calloc(bptr->length + 1, sizeof(char));
+    if (NULL == result)
+        return NULL;
+    BIO_read(mem, result, bptr->length);
+
+    X509_free(cert);
+    BIO_free(mem);
+
+    return result;
 }
 
 static int _mosq_client_protocol(const struct mosquitto *client)

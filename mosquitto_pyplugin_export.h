@@ -33,6 +33,7 @@ const int MOSQ_LOG_UNSUBSCRIBE;
 void _mosq_log(int loglevel, char* message);
 const char *_mosq_client_address(const struct mosquitto *client);
 const char *_mosq_client_id(const struct mosquitto *client);
+char* _mosq_client_certificate(const struct mosquitto *client);
 int _mosq_client_protocol(const struct mosquitto *client);
 int _mosq_client_protocol_version(const struct mosquitto *client);
 const char *_mosq_client_username(const struct mosquitto *client);
@@ -40,7 +41,9 @@ int _mosq_set_username(struct mosquitto *client, const char *username);
 int _mosq_kick_client_by_clientid(const char *client_id, bool with_will);
 int _mosq_kick_client_by_username(const char *client_username, bool with_will);
 bool _mosq_topic_matches_sub(char* sub, char* topic);
+
 char *strncpy(char *dest, const char *src, size_t n);
+void free(void *ptr);
 
 extern "Python" void* _py_plugin_init(struct mosquitto_opt *options,
                                       int option_count);

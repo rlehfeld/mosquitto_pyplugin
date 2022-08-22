@@ -9,7 +9,8 @@ impl_file = prefix + "_impl.c"
 
 with open(impl_file) as f:
     ffibuilder.set_source('_' + plugin,
-                          f'#define PLUGIN_NAME "{plugin}"\n' + f.read())
+                          f'#define PLUGIN_NAME "{plugin}"\n' + f.read(),
+                          extra_compile_args=["-Werror", "-Wall", "-Wextra"])
 
 with open(export_file) as f:
     ffibuilder.cdef(f.read())

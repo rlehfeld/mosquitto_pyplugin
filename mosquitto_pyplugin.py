@@ -59,7 +59,6 @@ class MosquittoCallbackHandler(object):
 
         return lib.MOSQ_ERR_PLUGIN_DEFER
 
-
     def psk_key(self, client, identity, hint):
         for module in self._modules:
             if hasattr(module, 'psk_key'):
@@ -89,6 +88,13 @@ def client_address(client):
 
 def client_id(client):
     return _to_string(lib._mosq_client_id(client))
+
+
+def client_certificate(client):
+    cert_cstr = lib._mosq_client_certificate(client)
+    cert = _to_string(cert_cstr)
+    lib.free(cert_cstr)
+    return cert
 
 
 def client_protocol(client):

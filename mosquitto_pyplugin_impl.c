@@ -106,6 +106,7 @@ static bool _mosq_topic_matches_sub(char* sub, char* topic)
     return res;
 }
 
+
 /* event callback methods */
 static int _py_basic_auth(void* user_data,
                           const struct mosquitto* client,
@@ -121,6 +122,7 @@ static int handle_basic_auth(int event _UNUSED_ATR, void *event_data, void *user
                           basic_auth_event->username,
                           basic_auth_event->password);
 }
+
 
 static int _py_acl_check(void* user_data,
                          const struct mosquitto* client,
@@ -140,6 +142,7 @@ static int handle_acl_check(int event _UNUSED_ATR, void *event_data, void *user_
                          acl_check_event->payload,
                          acl_check_event->payloadlen);
 }
+
 
 static int _py_psk_key(void* user_data,
                        const struct mosquitto* client,
@@ -161,8 +164,21 @@ static int handle_psk_key(int event _UNUSED_ATR, void *event_data, void *user_da
 }
 
 
-/* Plugin entry points */
+static int _py_disconnect(void* user_data,
+                          const struct mosquitto* client,
+                          int reason);
+static int handle_disconnect(int event _UNUSED_ATR, void *event_data, void *user_data)
+{
+    struct pyplugin_data *data = user_data;
+    struct mosquitto_evt_disconnect *disconnect_event = event_data;
 
+    return _py_disconnect(data->user_data,
+                          disconnect_event->client,
+                          disconnect_event->reason);
+}
+
+
+/* Plugin entry points */
 CFFI_DLLEXPORT int mosquitto_plugin_version(int supported_version_count,
                                             const int *supported_versions)
 {
@@ -216,6 +232,11 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
                                 handle_psk_key,
                                 NULL,
                                 data);
+    mosquitto_callback_register(identifier,
+                                MOSQ_EVT_DISCONNECT,
+                                handle_disconnect,
+                                NULL,
+                                data);
 
     *userdata = data;
 
@@ -240,6 +261,10 @@ CFFI_DLLEXPORT int mosquitto_plugin_cleanup(void *user_data,
     mosquitto_callback_unregister(data->identifier,
                                   MOSQ_EVT_PSK_KEY,
                                   handle_psk_key,
+                                  NULL);
+    mosquitto_callback_unregister(data->identifier,
+                                  MOSQ_EVT_DISCONNECT,
+                                  handle_disconnect,
                                   NULL);
 
     return _py_plugin_cleanup(data->user_data, options, option_count);

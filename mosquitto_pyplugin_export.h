@@ -66,3 +66,6 @@ extern "Python" int _py_psk_key(void* user_data,
                                 const char *hint,
                                 char *key,
                                 int max_key_len);
+extern "Python" int _py_disconnect(void* user_data,
+                                   const struct mosquitto* client,
+                                   int reason);

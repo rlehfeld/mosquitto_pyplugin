@@ -83,6 +83,10 @@ and provide following global functions:
   identity and hint pair is allowed to connect else return `""` for returning MOSQ_ERR_AUTH or `None`
   for returning MOSQ_ERR_PLUGIN_DEFER to mosquitto.
 
+* `disconnect(client, reason)` : inform about disconnection of `client` with
+  reason code `reason`
+
+
 Auxiliary module
 ================
 
@@ -94,21 +98,31 @@ The module provides following function:
 
 * `log(loglevel, message)`: log `message` into mosquitto's log
   file with the given `loglevel` (one of the constants below).
+
 * `client_address(client)`: get client address from `client`
   handle
+
 * `client_id(client)`: get client id from `client` handle
+
 * `client_certificate(client)`: get the client certificate
   from the `client` handle
+
 * `client_protocol(client)`: get used client protocol from
   `client` handle
+
 * `client_protocol_version(client)`: get used client protocol
   version from `client` handle
+
 * `client_username(client)`: get client username from `client`
   handle
+
 * `set_username(client, username)`: change client username
   in `client` handle to `username`
+
 * `kick_client_by_clientid(client_id, with_will)`:
+
 * `kick_client_by_username(client_username, with_will)`:
+
 * `topic_matches_sub(sub, topic)`: it mirrors
   `mosquitto_topic_matches_sub` from libmosquitto C library - the
   function checks whether `topic` matches given `sub` pattern (for

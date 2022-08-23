@@ -70,6 +70,15 @@ class MosquittoCallbackHandler(object):
 
         return None
 
+    def disconnect(self, client, reason):
+        for module in self._modules:
+            if hasattr(module, 'disconnect'):
+                module.disconnect(
+                    client, reason
+                )
+
+        return None
+
 
 def _newhandler():
     handler = MosquittoCallbackHandler()

@@ -81,6 +81,13 @@ ffibuilder.embedding_init_code(f"""
         psk_cstr = ffi.new("char[]", psk_encoded)
         lib.strncpy(key, psk_cstr, max_key_len)
         return lib.MOSQ_ERR_SUCCESS
+
+
+    @ffi.def_extern()
+    def _py_disconnect(user_data, client, reason):
+        obj = ffi.from_handle(user_data)
+        obj.disconnect(client, reason)
+        return lib.MOSQ_ERR_SUCCESS
 """)
 
 ffibuilder.compile(target=f"{plugin}.*", verbose=True)

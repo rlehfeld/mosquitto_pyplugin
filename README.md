@@ -86,6 +86,10 @@ and provide following global functions:
 * `disconnect(client, reason)` : inform about disconnection of `client` with
   reason code `reason`
 
+* `message(client, message_event)` : inform new message event. Message is passed as dictionary
+  If the callback adapts the message, the new information is passed back to mosquitto
+  and the message will be adapted accordingly.
+
 
 Auxiliary module
 ================

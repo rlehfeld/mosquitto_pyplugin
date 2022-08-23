@@ -18,11 +18,9 @@ struct pyplugin_data {
 
 #define _UNUSED_ATR  __attribute__((unused))
 
-__attribute__((format(printf, 2, 3)))
-static void die(bool print_exception, const char *fmt, ...)
+__attribute__((format(printf, 1, 2)))
+static void die(const char *fmt, ...)
 {
-    if (print_exception)
-        PyErr_Print();
     va_list ap;
     va_start(ap, fmt);
     vfprintf(stderr, fmt, ap);
@@ -234,12 +232,12 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
 
     if (!started) {
         if (cffi_start_python())
-            die(false, "failed to start python");
+            die("failed to start python");
         started = true;
     }
     void *user_data = _py_plugin_init(options, option_count);
     if (NULL == user_data) {
-        die(false, "could not init python plugin");
+        die("could not init python plugin");
     }
     data->user_data = user_data;
 

@@ -100,10 +100,9 @@ def client_id(client):
 
 
 def client_certificate(client):
-    cert_cstr = lib._mosq_client_certificate(client)
-    cert = _to_string(cert_cstr)
-    lib.free(cert_cstr)
-    return cert
+    with ffi.gc(lib._mosq_client_certificate(client), lib.free) as cert_cstr:
+        cert = _to_string(cert_cstr)
+        return cert
 
 
 def client_protocol(client):

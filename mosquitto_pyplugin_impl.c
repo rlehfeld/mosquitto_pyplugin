@@ -106,6 +106,23 @@ static bool _mosq_topic_matches_sub(char* sub, char* topic)
     return res;
 }
 
+static char *_mosq_strdup(const char* s)
+{
+    return mosquitto_strdup(s);
+}
+
+static void* _mosq_copy(void* src, size_t size)
+{
+    void *dest = mosquitto_malloc(size);
+    if (NULL != dest)
+    {
+        void *ret = memcpy(dest, src, size);
+	if (NULL == ret)
+	    mosquitto_free(dest);
+	return ret;
+    }
+    return NULL;
+}
 
 /* event callback methods */
 static int _py_basic_auth(void* user_data,
@@ -128,7 +145,7 @@ static int _py_acl_check(void* user_data,
                          const struct mosquitto* client,
                          const char *topic,
                          int access,
-                         const unsigned char* payload,
+                         const void* payload,
                          uint32_t payloadlen);
 static int handle_acl_check(int event _UNUSED_ATR, void *event_data, void *user_data)
 {
@@ -176,6 +193,21 @@ static int handle_disconnect(int event _UNUSED_ATR, void *event_data, void *user
                           disconnect_event->client,
                           disconnect_event->reason);
 }
+
+
+static int _py_message(void* user_data,
+                       const struct mosquitto* client,
+                       struct mosquitto_evt_message* event_message);
+static int handle_message(int event _UNUSED_ATR, void *event_data, void *user_data)
+{
+    struct pyplugin_data *data = user_data;
+    struct mosquitto_evt_message *event_message = event_data;
+
+    return _py_message(data->user_data,
+                       event_message->client,
+                       event_message);
+}
+
 
 
 /* Plugin entry points */
@@ -237,6 +269,11 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
                                 handle_disconnect,
                                 NULL,
                                 data);
+    mosquitto_callback_register(identifier,
+                                MOSQ_EVT_MESSAGE,
+                                handle_message,
+                                NULL,
+                                data);
 
     *userdata = data;
 
@@ -265,6 +302,10 @@ CFFI_DLLEXPORT int mosquitto_plugin_cleanup(void *user_data,
     mosquitto_callback_unregister(data->identifier,
                                   MOSQ_EVT_DISCONNECT,
                                   handle_disconnect,
+                                  NULL);
+    mosquitto_callback_unregister(data->identifier,
+                                  MOSQ_EVT_MESSAGE,
+                                  handle_message,
                                   NULL);
 
     return _py_plugin_cleanup(data->user_data, options, option_count);

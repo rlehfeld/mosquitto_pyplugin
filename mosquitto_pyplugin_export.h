@@ -1,13 +1,22 @@
 struct mosquitto;
 
 struct mosquitto_opt {
-        char *key;
-        char *value;
+    char *key;
+    char *value;
 };
 
 struct mosquitto_auth_opt {
-        char *key;
-        char *value;
+    char *key;
+    char *value;
+};
+
+struct mosquitto_evt_message {
+    char *topic;
+    void *payload;
+    uint32_t payloadlen;
+    uint8_t qos;
+    bool retain;
+    ...;
 };
 
 const int MOSQ_ACL_NONE;
@@ -44,6 +53,8 @@ bool _mosq_topic_matches_sub(char* sub, char* topic);
 
 char *strncpy(char *dest, const char *src, size_t n);
 void free(void *ptr);
+char *_mosq_strdup(const char* s);
+void *_mosq_copy(void* src, size_t size);
 
 extern "Python" void* _py_plugin_init(struct mosquitto_opt *options,
                                       int option_count);
@@ -58,7 +69,7 @@ extern "Python" int _py_acl_check(void* user_data,
                                   const struct mosquitto* client,
                                   const char *topic,
                                   int access,
-                                  const unsigned char* payload,
+                                  const void* payload,
                                   uint32_t payloadlen);
 extern "Python" int _py_psk_key(void* user_data,
                                 const struct mosquitto* client,
@@ -69,3 +80,6 @@ extern "Python" int _py_psk_key(void* user_data,
 extern "Python" int _py_disconnect(void* user_data,
                                    const struct mosquitto* client,
                                    int reason);
+extern "Python" int _py_message(void* user_data,
+                                const struct mosquitto* client,
+                                struct mosquitto_evt_message* event_message);

@@ -79,6 +79,16 @@ class MosquittoCallbackHandler(object):
 
         return None
 
+    def message(self, client, event_message):
+        for module in self._modules:
+            if hasattr(module, 'message'):
+                res = module.message(
+                    client, event_message
+                )
+                if res != lib.MOSQ_ERR_SUCCESS:
+                    return res
+        return lib.MOSQ_ERR_SUCCESS
+
 
 def _newhandler():
     handler = MosquittoCallbackHandler()

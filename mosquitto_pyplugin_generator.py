@@ -23,6 +23,20 @@ ffibuilder.embedding_init_code(f"""
     _HANDLER = []
 
 
+    class dotdict(dict):
+        '''dot.notation access to dictionary attributes'''
+        __getattr__ = dict.get
+        __setattr__ = dict.__setitem__
+        __delattr__ = dict.__delitem__
+
+        def copy(self):
+            return dotdict(self)
+
+    def from_payload(payload, payloadlen):
+        if payload is None or payload == ffi.NULL:
+            return None
+        return bytes(ffi.unpack(ffi.cast('char*', payload), payloadlen))
+
     @ffi.def_extern()
     def _py_plugin_init(options, option_count):
         handler = _newhandler()
@@ -57,10 +71,7 @@ ffibuilder.embedding_init_code(f"""
     def _py_acl_check(user_data, client, topic, access, payload, payloadlen):
         obj = ffi.from_handle(user_data)
         topic = _to_string(topic)
-        if payload is None or payload == ffi.NULL:
-            payload = None
-        else:
-            payload = bytes(ffi.unpack(payload, payloadlen))
+        payload = from_payload(payload, payloadlen)
         return obj.acl_check(client, topic, access, payload)
 
 
@@ -78,7 +89,7 @@ ffibuilder.embedding_init_code(f"""
         psk_encoded = ret.encode('UTF8')
         if len(key_ret) >= max_key_len:
             return lib.MOSQ_ERR_AUTH
-        psk_cstr = ffi.new("char[]", psk_encoded)
+        psk_cstr = ffi.new('char[]', psk_encoded)
         lib.strncpy(key, psk_cstr, max_key_len)
         return lib.MOSQ_ERR_SUCCESS
 
@@ -88,6 +99,35 @@ ffibuilder.embedding_init_code(f"""
         obj = ffi.from_handle(user_data)
         obj.disconnect(client, reason)
         return lib.MOSQ_ERR_SUCCESS
+
+
+    @ffi.def_extern()
+    def _py_message(user_data, client, event_message):
+        obj = ffi.from_handle(user_data)
+        message = dotdict()
+        message.topic = _to_string(event_message.topic)
+        message.payload = from_payload(
+            event_message.payload,
+            event_message.payloadlen
+        )
+        message.qos = event_message.qos
+        message.retain = event_message.retain
+        orig_message = message.copy()
+        res = obj.message(client, message)
+        if orig_message.topic is not message.topic:
+           topic_cstr = ffi.new('char[]', message.topic.encode('UTF8'))
+           event_message.topic = lib._mosq_strdup(topic_cstr)
+        if orig_message.payload is not message.payload:
+           if isinstance(message.payload, str):
+               payload = message.payload.encode('UTF8')
+           else:
+               payload = message.payload
+           payload_vptr = ffi.new('char[]', payload)
+           event_message.payload = lib._mosq_copy(payload_vptr, len(payload))
+           event_message.payloadlen = len(payload)
+        event_message.qos = message.qos
+        event_message.retain = message.retain
+        return res
 """)
 
 ffibuilder.compile(target=f"{plugin}.*", verbose=True)

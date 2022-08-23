@@ -1,3 +1,4 @@
 *.pyc
 *.o
-auth_plugin_pyauth.so
+_mosquitto_pyplugin.c
+mosquitto_pyplugin.so

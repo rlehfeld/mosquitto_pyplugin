@@ -1,5 +1,5 @@
 import mosquitto_pyplugin
-
+import json
 
 def plugin_init(options):
     mosquitto_pyplugin.log(
@@ -120,17 +120,25 @@ def message(client, message_event):
     client_protocol_version = mosquitto_pyplugin.client_protocol_version(
         client
     )
-    # message_event.properties.extend(
-    #     (
-    #         ('maximum-qos', 3),
-    #         ('topic-alias', 256),
-    #         ('maximum-packet-size', 256*256*256-1),
-    #         ('subscription-identifier', 256*256+1),
-    #         ('correlation-data', b'blabla'),
-    #         ('reason-string', 'i was here'),
-    #         ('user-property', ('mykey', 'myvalue')),
-    #     )
-    # )
+
+    message_event.retain = False
+    if message_event.payload:
+        try:
+            data = json.loads(message_event.payload)
+            data['added_value'] = 4711
+            message_event.payload = json.dumps(data)
+        except json.decoder.JSONDecodeError:
+            pass
+
+    message_event.properties.extend(
+        (
+            ('user-property', ('prop1', 'value1')),
+            ('user-property', ('prop2', 'value2')),
+        )
+    )
+
+    message_event.topic = f'changed/{message_event.topic}'
+
     mosquitto_pyplugin.log(
         mosquitto_pyplugin.MOSQ_LOG_INFO,
         'message (client_id: {} client_username: {} '

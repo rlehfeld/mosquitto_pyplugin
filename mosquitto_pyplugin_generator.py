@@ -123,12 +123,14 @@ ffibuilder.embedding_init_code(f"""
         res = obj.message(client, message)
 
         if orig_message.topic is not message.topic:
-           event_message.topic = lib._mosq_strdup(_to_cstr(topic))
+           event_message.topic = lib._mosq_strdup(_to_cstr(message.topic))
         if orig_message.payload is not message.payload:
+           payload, payloadlen = _to_binary(message.payload)
            event_message.payload = lib._mosq_copy(
-               *_to_binary(payload)
+               payload,
+               payloadlen,
            )
-           event_message.payloadlen = len(payload)
+           event_message.payloadlen = payloadlen
         if orig_message.properties is not message.properties:
            event_message.properties = _list_to_properties(
                message.properties

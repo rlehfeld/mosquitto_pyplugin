@@ -19,10 +19,12 @@ def _from_cstr(cstr):
 
 
 def _to_binary(value):
-    if isinstance(value, str):
+    if value is None:
+        return ffi.NULL, 0
+    elif isinstance(value, str):
         value_binary = value.encode('UTF8')
     else:
-        value_binary = value
+        value_binary = bytes(value)
     return ffi.new('char[]', value_binary), len(value)
 
 

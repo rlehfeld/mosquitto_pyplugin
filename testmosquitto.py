@@ -120,6 +120,17 @@ def message(client, message_event):
     client_protocol_version = mosquitto_pyplugin.client_protocol_version(
         client
     )
+    # message_event.properties.extend(
+    #     (
+    #         ('maximum-qos', 3),
+    #         ('topic-alias', 256),
+    #         ('maximum-packet-size', 256*256*256-1),
+    #         ('subscription-identifier', 256*256+1),
+    #         ('correlation-data', b'blabla'),
+    #         ('reason-string', 'i was here'),
+    #         ('user-property', ('mykey', 'myvalue')),
+    #     )
+    # )
     mosquitto_pyplugin.log(
         mosquitto_pyplugin.MOSQ_LOG_INFO,
         'message (client_id: {} client_username: {} '

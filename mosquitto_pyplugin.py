@@ -5,17 +5,29 @@ import importlib
 _HANDLER = []
 
 
-def _to_string(cstr):
+def _from_binary(value, valuelen):
+    if value is None or value == ffi.NULL:
+        return None
+    return bytes(ffi.unpack(ffi.cast('char*', value), valuelen))
+
+
+def _from_cstr(cstr):
     if cstr is None or cstr == ffi.NULL:
         return None
     else:
         return ffi.string(cstr).decode('utf8')
 
 
-def _to_binary(value, valuelen):
-    if value is None or value == ffi.NULL:
-        return None
-    return bytes(ffi.unpack(ffi.cast('char*', value), valuelen))
+def _to_binary(value):
+    if isinstance(value, str):
+        value_binary = value.encode('UTF8')
+    else:
+        value_binary = value
+    return ffi.new('char[]', value_binary), len(value)
+
+
+def _to_cstr(value):
+    return _to_binary(value)[0]
 
 
 def _read_byte_property(property_ptr, property_identifier):
@@ -71,9 +83,8 @@ def _read_varint_property(property_ptr, property_identifier):
 
 
 def _read_binary_property(property_ptr, property_identifier):
-    property_value = ffi.new('void*')
-    property_value_ptr = ffi.new('void**', property_value)
-    property_value_len = ffi.new('uint16*')
+    property_value_ptr = ffi.new('void**')
+    property_value_len = ffi.new('uint16_t*')
     property_found_ptr = lib.mosquitto_property_read_binary(
         property_ptr,
         property_identifier,
@@ -83,13 +94,13 @@ def _read_binary_property(property_ptr, property_identifier):
     )
     if property_found_ptr != property_ptr:
         raise ValueError("Property found at wrong place")
-    return _to_binary(property_value, property_value_len[0])
+    return _from_binary(property_value_ptr[0], property_value_len[0])
 
 
 def _read_string_property(property_ptr, property_identifier):
     property_value = ffi.new('char*')
     property_value_ptr = ffi.new('char**', property_value)
-    property_found_ptr = lib.mosquitto_property_read_binary(
+    property_found_ptr = lib.mosquitto_property_read_string(
         property_ptr,
         property_identifier,
         property_value_ptr,
@@ -97,15 +108,13 @@ def _read_string_property(property_ptr, property_identifier):
     )
     if property_found_ptr != property_ptr:
         raise ValueError("Property found at wrong place")
-    return _to_string(property_value)
+    return _from_cstr(property_value)
 
 
 def _read_string_pair_property(property_ptr, property_identifier):
-    property_name = ffi.new('char*')
-    property_name_ptr = ffi.new('char**', property_name)
-    property_value = ffi.new('char*')
-    property_value_ptr = ffi.new('char**', property_value)
-    property_found_ptr = lib.mosquitto_property_read_binary(
+    property_name_ptr = ffi.new('char**')
+    property_value_ptr = ffi.new('char**')
+    property_found_ptr = lib.mosquitto_property_read_string_pair(
         property_ptr,
         property_identifier,
         property_name_ptr,
@@ -113,8 +122,83 @@ def _read_string_pair_property(property_ptr, property_identifier):
         False,
     )
     if property_found_ptr != property_ptr:
-        raise ValueError("Property found at wrong place")
-    return (_to_string(property_name), _to_string(property_value))
+        raise ValueError('Property found at wrong place')
+    return (
+        _from_cstr(property_name_ptr[0]),
+        _from_cstr(property_value_ptr[0]),
+    )
+
+
+def _add_byte_property(property_ptr, property_identifier, property_value):
+    result = lib.mosquitto_property_add_byte(
+        property_ptr,
+        property_identifier,
+        property_value,
+    )
+    if lib.MOSQ_ERR_SUCCESS != result:
+        raise ValueError(f'Adding Property to list failed: {result}')
+
+
+def _add_int16_property(property_ptr, property_identifier, property_value):
+    result = lib.mosquitto_property_add_int16(
+        property_ptr,
+        property_identifier,
+        property_value,
+    )
+    if lib.MOSQ_ERR_SUCCESS != result:
+        raise ValueError(f'Adding Property to list failed: {result}')
+
+
+def _add_int32_property(property_ptr, property_identifier, property_value):
+    result = lib.mosquitto_property_add_int32(
+        property_ptr,
+        property_identifier,
+        property_value,
+    )
+    if lib.MOSQ_ERR_SUCCESS != result:
+        raise ValueError(f'Adding Property to list failed: {result}')
+
+
+def _add_varint_property(property_ptr, property_identifier, property_value):
+    result = lib.mosquitto_property_add_varint(
+        property_ptr,
+        property_identifier,
+        property_value,
+    )
+    if lib.MOSQ_ERR_SUCCESS != result:
+        raise ValueError(f'Adding Property to list failed: {result}')
+
+
+def _add_binary_property(property_ptr, property_identifier, property_value):
+    result = lib.mosquitto_property_add_binary(
+        property_ptr,
+        property_identifier,
+        *_to_binary(property_value),
+    )
+    if lib.MOSQ_ERR_SUCCESS != result:
+        raise ValueError(f'Adding Property to list failed: {result}')
+
+
+def _add_string_property(property_ptr, property_identifier, property_value):
+    result = lib.mosquitto_property_add_string(
+        property_ptr,
+        property_identifier,
+        _to_cstr(property_value),
+    )
+    if lib.MOSQ_ERR_SUCCESS != result:
+        raise ValueError(f'Adding Property to list failed: {result}')
+
+
+def _add_string_pair_property(property_ptr, property_identifier,
+                              property_name, property_value):
+    result = lib.mosquitto_property_add_string_pair(
+        property_ptr,
+        property_identifier,
+        _to_cstr(property_name),
+        _to_cstr(property_value),
+    )
+    if lib.MOSQ_ERR_SUCCESS != result:
+        raise ValueError(f'Adding Property to list failed: {result}')
 
 
 def _properties_to_list(properties):
@@ -131,9 +215,8 @@ def _properties_to_list(properties):
                         property_name_cstr,
                         property_identifier_iptr,
                         property_type_iptr):
-            property_name = _to_string(property_name_cstr)
+            property_name = _from_cstr(property_name_cstr)
             property_type = property_type_iptr[0]
-            print(property_type)
             if lib.MQTT_PROP_TYPE_BYTE == property_type:
                 property_list.append(
                     (
@@ -205,6 +288,69 @@ def _properties_to_list(properties):
                 )
         property_ptr = lib.mosquitto_property_next(property_ptr)
     return property_list
+
+
+def _list_to_properties(property_list):
+    property_ptr = ffi.new('mosquitto_property**')
+    for property_name, property_value in property_list:
+        property_name_cstr = _to_cstr(property_name)
+        property_identifier_iptr = ffi.new('int*')
+        property_type_iptr = ffi.new('int*')
+        if lib.MOSQ_ERR_SUCCESS == lib.mosquitto_string_to_property_info(
+                        property_name_cstr,
+                        property_identifier_iptr,
+                        property_type_iptr):
+            property_identifier = property_identifier_iptr[0]
+            property_type = property_type_iptr[0]
+            if lib.MQTT_PROP_TYPE_BYTE == property_type:
+                _add_byte_property(
+                    property_ptr,
+                    property_identifier,
+                    property_value
+                )
+            elif lib.MQTT_PROP_TYPE_INT16 == property_type:
+                _add_int16_property(
+                    property_ptr,
+                    property_identifier,
+                    property_value
+                )
+            elif lib.MQTT_PROP_TYPE_INT32 == property_type:
+                _add_int32_property(
+                    property_ptr,
+                    property_identifier,
+                    property_value
+                )
+            elif lib.MQTT_PROP_TYPE_VARINT == property_type:
+                _add_varint_property(
+                    property_ptr,
+                    property_identifier,
+                    property_value
+                )
+            elif lib.MQTT_PROP_TYPE_BINARY == property_type:
+                _add_binary_property(
+                    property_ptr,
+                    property_identifier,
+                    property_value
+                )
+            elif lib.MQTT_PROP_TYPE_STRING == property_type:
+                _add_string_property(
+                    property_ptr,
+                    property_identifier,
+                    property_value
+                )
+            elif lib.MQTT_PROP_TYPE_STRING_PAIR == property_type:
+                _add_string_pair_property(
+                    property_ptr,
+                    property_identifier,
+                    *property_value
+                )
+            else:
+                raise ValueError(
+                    f'Unimplemented property type {property_type}'
+                )
+        else:
+            raise ValueError(f'Unknown property with name {property_name}')
+    return property_ptr[0]
 
 
 class MosquittoCallbackHandler(object):
@@ -292,21 +438,20 @@ def _newhandler():
 
 
 def log(loglevel, message):
-    message_cstr = ffi.new("char[]", message.encode('UTF8'))
-    lib._mosq_log(loglevel, message_cstr)
+    lib._mosq_log(loglevel, _to_cstr(message))
 
 
 def client_address(client):
-    return _to_string(lib._mosq_client_address(client))
+    return _from_cstr(lib._mosq_client_address(client))
 
 
 def client_id(client):
-    return _to_string(lib._mosq_client_id(client))
+    return _from_cstr(lib._mosq_client_id(client))
 
 
 def client_certificate(client):
     with ffi.gc(lib._mosq_client_certificate(client), lib.free) as cert_cstr:
-        cert = _to_string(cert_cstr)
+        cert = _from_cstr(cert_cstr)
         return cert
 
 
@@ -319,28 +464,29 @@ def client_protocol_version(client):
 
 
 def client_username(client):
-    return _to_string(lib._mosq_client_username(client))
+    return _from_cstr(lib._mosq_client_username(client))
 
 
 def set_username(client, username):
-    username_cstr = ffi.new("char[]", username.encode('UTF8'))
-    return lib._mosq_set_username(client, username_cstr)
+    return lib._mosq_set_username(client, _to_cstr(username))
 
 
 def kick_client_by_clientid(client_id, with_will):
-    client_id_cstr = ffi.new("char[]", client_id.encode('UTF8'))
-    return lib._mosq_kick_client_by_clientid(client_id_cstr, with_will)
+    return lib._mosq_kick_client_by_clientid(
+        _to_cstr(client_id),
+        with_will,
+    )
 
 
 def kick_client_by_username(client_username, with_will):
-    client_username_cstr = ffi.new("char[]", client_username.encode('UTF8'))
-    return lib._mosq_kick_client_by_username(client_username_cstr, with_will)
+    return lib._mosq_kick_client_by_username(
+        _to_cstr(client_username),
+        with_will,
+    )
 
 
 def topic_matches_sub(sub, topic):
-    sub_cstr = ffi.new("char[]", sub.encode('UTF8'))
-    topic_cstr = ffi.new("char[]", topic.encode('UTF8'))
-    return lib._mosq_topic_matches_sub(sub_cstr, topic_cstr)
+    return lib._mosq_topic_matches_sub(_to_cstr(sub), _to_cstr(topic))
 
 
 def __getattr__(name):

@@ -93,6 +93,41 @@ def psk_key(client, identity, hint):
     return '0123456789'
 
 
+def disconnect(client, reason):
+    client_id = mosquitto_pyplugin.client_id(client)
+    client_username = mosquitto_pyplugin.client_username(client)
+    client_address = mosquitto_pyplugin.client_address(client)
+    client_protocol = mosquitto_pyplugin.client_protocol(client)
+    client_protocol_version = mosquitto_pyplugin.client_protocol_version(
+        client
+    )
+    mosquitto_pyplugin.log(
+        mosquitto_pyplugin.MOSQ_LOG_INFO,
+        'disconnect (client_id: {} client_username: {} '
+        'client_address: {} client_protocol: {} '
+        'client_protocol_version: {} reason: {})'.format(
+            client_id, client_username, client_address, client_protocol,
+            client_protocol_version, reason
+        )
+    )
+
+
 def message(client, message_event):
-    print(message_event)
+    client_id = mosquitto_pyplugin.client_id(client)
+    client_username = mosquitto_pyplugin.client_username(client)
+    client_address = mosquitto_pyplugin.client_address(client)
+    client_protocol = mosquitto_pyplugin.client_protocol(client)
+    client_protocol_version = mosquitto_pyplugin.client_protocol_version(
+        client
+    )
+    mosquitto_pyplugin.log(
+        mosquitto_pyplugin.MOSQ_LOG_INFO,
+        'message (client_id: {} client_username: {} '
+        'client_address: {} client_protocol: {} '
+        'client_protocol_version: {} message: {})'.format(
+            client_id, client_username, client_address, client_protocol,
+            client_protocol_version, message_event
+        )
+    )
+
     return mosquitto_pyplugin.MOSQ_ERR_SUCCESS

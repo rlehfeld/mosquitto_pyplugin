@@ -121,11 +121,26 @@ def message(client, message_event):
         client
     )
 
+    mosquitto_pyplugin.log(
+        mosquitto_pyplugin.MOSQ_LOG_INFO,
+        '<<<< message (client_id: {} client_username: {} '
+        'client_address: {} client_protocol: {} '
+        'client_protocol_version: {} message: {})'.format(
+            client_id, client_username, client_address, client_protocol,
+            client_protocol_version, message_event
+        )
+    )
+
     message_event.retain = False
     if message_event.payload:
         try:
             data = json.loads(message_event.payload)
             data['added_value'] = 4711
+            if 'Wifi' in data:
+                if 'SSId' in data['Wifi']:
+                    data['Wifi']['SSId'] = 'xxxxxxxxx'
+                if 'BSSId' in data['Wifi']:
+                    del data['Wifi']['BSSId']
             message_event.payload = json.dumps(data)
         except json.decoder.JSONDecodeError:
             pass
@@ -141,7 +156,7 @@ def message(client, message_event):
 
     mosquitto_pyplugin.log(
         mosquitto_pyplugin.MOSQ_LOG_INFO,
-        'message (client_id: {} client_username: {} '
+        '>>>> message (client_id: {} client_username: {} '
         'client_address: {} client_protocol: {} '
         'client_protocol_version: {} message: {})'.format(
             client_id, client_username, client_address, client_protocol,

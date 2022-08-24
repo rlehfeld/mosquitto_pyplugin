@@ -7,6 +7,7 @@
 #include <mosquitto.h>
 #include <mosquitto_plugin.h>
 #include <mosquitto_broker.h>
+#include <mqtt_protocol.h>
 #include <openssl/x509.h>
 #include <openssl/bio.h>
 #include <openssl/pem.h>

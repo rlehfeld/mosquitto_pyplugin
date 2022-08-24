@@ -91,3 +91,8 @@ def psk_key(client, identity, hint):
         )
     )
     return '0123456789'
+
+
+def message(client, message_event):
+    print(message_event)
+    return mosquitto_pyplugin.MOSQ_ERR_SUCCESS

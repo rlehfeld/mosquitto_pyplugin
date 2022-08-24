@@ -10,14 +10,20 @@ impl_file = prefix + "_impl.c"
 with open(impl_file) as f:
     ffibuilder.set_source('_' + plugin,
                           f'#define PLUGIN_NAME "{plugin}"\n' + f.read(),
-                          extra_compile_args=["-Werror", "-Wall", "-Wextra"])
+                          extra_compile_args=["-Werror", "-Wall", "-Wextra"],
+                          libraries=['mosquitto'])
 
 with open(export_file) as f:
     ffibuilder.cdef(f.read())
 
 ffibuilder.embedding_init_code(f"""
     from _{plugin} import ffi, lib
-    from {plugin} import _newhandler, _to_string
+    from {plugin} import (
+        _newhandler,
+        _to_string,
+        _to_binary,
+        _properties_to_list,
+    )
 
 
     _HANDLER = []
@@ -31,11 +37,6 @@ ffibuilder.embedding_init_code(f"""
 
         def copy(self):
             return dotdict(self)
-
-    def from_payload(payload, payloadlen):
-        if payload is None or payload == ffi.NULL:
-            return None
-        return bytes(ffi.unpack(ffi.cast('char*', payload), payloadlen))
 
     @ffi.def_extern()
     def _py_plugin_init(options, option_count):
@@ -71,7 +72,7 @@ ffibuilder.embedding_init_code(f"""
     def _py_acl_check(user_data, client, topic, access, payload, payloadlen):
         obj = ffi.from_handle(user_data)
         topic = _to_string(topic)
-        payload = from_payload(payload, payloadlen)
+        payload = _to_binary(payload, payloadlen)
         return obj.acl_check(client, topic, access, payload)
 
 
@@ -106,9 +107,12 @@ ffibuilder.embedding_init_code(f"""
         obj = ffi.from_handle(user_data)
         message = dotdict()
         message.topic = _to_string(event_message.topic)
-        message.payload = from_payload(
+        message.payload = _to_binary(
             event_message.payload,
             event_message.payloadlen
+        )
+        message.properties = _properties_to_list(
+            event_message.properties
         )
         message.qos = event_message.qos
         message.retain = event_message.retain

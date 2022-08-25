@@ -73,7 +73,7 @@ def acl_check(client, topic, access, payload):
     return mosquitto_pyplugin.MOSQ_ERR_SUCCESS
 
 
-def psk_key(client, identity, hint):
+def psk_key(client, hint, identity):
     client_id = mosquitto_pyplugin.client_id(client)
     client_username = mosquitto_pyplugin.client_username(client)
     client_address = mosquitto_pyplugin.client_address(client)
@@ -85,9 +85,9 @@ def psk_key(client, identity, hint):
         mosquitto_pyplugin.MOSQ_LOG_INFO,
         'psk_key (client_id: {} client_username: {} '
         'client_address: {} client_protocol: {} '
-        'client_protocol_version: {} identity: {} hint: {})'.format(
+        'client_protocol_version: {} hint: {} identity: {})'.format(
             client_id, client_username, client_address, client_protocol,
-            client_protocol_version, identity, hint
+            client_protocol_version, hint, identity
         )
     )
     return '0123456789'

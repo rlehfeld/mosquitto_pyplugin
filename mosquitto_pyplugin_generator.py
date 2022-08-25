@@ -80,20 +80,23 @@ ffibuilder.embedding_init_code(f"""
 
 
     @ffi.def_extern()
-    def _py_psk_key(user_data, client, identity, hint,
+    def _py_psk_key(user_data, client, hint, identity,
                     key, max_key_len):
         obj = ffi.from_handle(user_data)
         identity = _from_cstr(identity)
         hint = _from_cstr(hint)
-        psk = obj.psk_key(client, identity, hint)
+        psk = obj.psk_key(client, hint, identity)
         if psk is None:
             return lib.MOSQ_ERR_PLUGIN_DEFER
         if not psk:
             return lib.MOSQ_ERR_AUTH
-        psk_encoded = ret.encode('UTF8')
-        if len(key_ret) >= max_key_len:
+        if isinstance(psk, str):
+           psk_bytes = psk.encode('UTF8')
+        else:
+           psk_bytes = bytes(psk)
+        if len(psk_bytes) >= max_key_len:
             return lib.MOSQ_ERR_AUTH
-        lib.strncpy(key, _to_cstr(psk), max_key_len)
+        lib.strncpy(key, _to_cstr(psk_bytes), max_key_len)
         return lib.MOSQ_ERR_SUCCESS
 
 

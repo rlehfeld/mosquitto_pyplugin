@@ -127,6 +127,8 @@ The module provides following function:
 
 * `kick_client_by_username(client_username, with_will)`:
 
+* `broker_publish(clientid, topic, payload, qos, retain, properties)`:
+
 * `topic_matches_sub(sub, topic)`: it mirrors
   `mosquitto_topic_matches_sub` from libmosquitto C library - the
   function checks whether `topic` matches given `sub` pattern (for

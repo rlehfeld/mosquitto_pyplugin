@@ -122,47 +122,55 @@ int mosquitto_property_add_string_pair(
                         const char *value);
 int mosquitto_property_identifier(
                         const mosquitto_property *property);
-extern const mosquitto_property *mosquitto_property_next(
+const mosquitto_property *mosquitto_property_next(
                         const mosquitto_property *proplist);
-extern const mosquitto_property *mosquitto_property_read_byte(
+const mosquitto_property *mosquitto_property_read_byte(
                         const mosquitto_property *proplist,
                         int identifier,
                         uint8_t *value,
                         bool skip_first);
-extern const mosquitto_property *mosquitto_property_read_int16(
+const mosquitto_property *mosquitto_property_read_int16(
                         const mosquitto_property *proplist,
                         int identifier,
                         uint16_t *value,
                         bool skip_first);
-extern const mosquitto_property *mosquitto_property_read_int32(
+const mosquitto_property *mosquitto_property_read_int32(
                         const mosquitto_property *proplist,
                         int identifier,
                         uint32_t *value,
                         bool skip_first);
-extern const mosquitto_property *mosquitto_property_read_varint(
+const mosquitto_property *mosquitto_property_read_varint(
                         const mosquitto_property *proplist,
                         int identifier,
                         uint32_t *value,
                         bool skip_first);
-extern const mosquitto_property *mosquitto_property_read_binary(
+const mosquitto_property *mosquitto_property_read_binary(
                         const mosquitto_property *proplist,
                         int identifier,
                         void **value,
                         uint16_t *len,
                         bool skip_first);
-extern const mosquitto_property *mosquitto_property_read_string(
+const mosquitto_property *mosquitto_property_read_string(
                         const mosquitto_property *proplist,
                         int identifier,
                         char **value,
                         bool skip_first);
-extern const mosquitto_property *mosquitto_property_read_string_pair(
+const mosquitto_property *mosquitto_property_read_string_pair(
                         const mosquitto_property *proplist,
                         int identifier,
                         char **name,
                         char **value,
                         bool skip_first);
-extern const char *mosquitto_property_identifier_to_string(int identifier);
-extern int mosquitto_string_to_property_info(
+const char *mosquitto_property_identifier_to_string(int identifier);
+int mosquitto_string_to_property_info(
                         const char *propname,
                         int *identifier,
                         int *type);
+int mosquitto_broker_publish_copy(
+			const char *clientid,
+			const char *topic,
+			int payloadlen,
+			const void *payload,
+			int qos,
+			bool retain,
+			mosquitto_property *properties);

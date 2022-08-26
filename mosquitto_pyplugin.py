@@ -487,6 +487,18 @@ def kick_client_by_username(client_username, with_will):
     )
 
 
+def broker_publish(clientid, topic, payload, qos, retain, properties):
+    payload_ptr, payloadlen = _to_binary(payload)
+    return lib.mosquitto_broker_publish_copy(
+        _to_cstr(clientid),
+        _to_cstr(topic),
+        payloadlen,
+        payload_ptr,
+        qos,
+        retain,
+        _list_to_properties(properties))
+
+
 def topic_matches_sub(sub, topic):
     return lib._mosq_topic_matches_sub(_to_cstr(sub), _to_cstr(topic))
 

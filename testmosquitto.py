@@ -23,7 +23,6 @@ class Plugin:
             'Plugin.plugin_cleanup (options: {})'.format(options)
         )
 
-
     def basic_auth(self, client, username, password):
         client_id = mosquitto_pyplugin.client_id(client)
         client_address = mosquitto_pyplugin.client_address(client)
@@ -45,18 +44,17 @@ class Plugin:
         client_certificate = mosquitto_pyplugin.client_certificate(client)
         if client_certificate:
             print(
-                'Plugin.basic_auth client_certificate (client_id: {}):\n{}'.format(
+                'Plugin.basic_auth certificate (client_id: {}):\n{}'.format(
                     client_id, client_certificate
                 ),
                 file=sys.stderr,
             )
 
         if ((not username or not password)
-            and not self._anonymous_allowed):
+                and not self._anonymous_allowed):
             return mosquitto_pyplugin.MOSQ_ERR_AUTH
 
         return mosquitto_pyplugin.MOSQ_ERR_SUCCESS
-
 
     def acl_check(self, client, topic, access, payload):
         client_id = mosquitto_pyplugin.client_id(client)
@@ -95,7 +93,6 @@ class Plugin:
             )
         return mosquitto_pyplugin.MOSQ_ERR_SUCCESS
 
-
     def psk_key(self, client, hint, identity):
         client_id = mosquitto_pyplugin.client_id(client)
         client_username = mosquitto_pyplugin.client_username(client)
@@ -115,7 +112,6 @@ class Plugin:
         )
         return '0123456789'
 
-
     def disconnect(self, client, reason):
         client_id = mosquitto_pyplugin.client_id(client)
         client_username = mosquitto_pyplugin.client_username(client)
@@ -133,7 +129,6 @@ class Plugin:
                 client_protocol_version, reason
             )
         )
-
 
     def message(self, client, message_event):
         client_id = mosquitto_pyplugin.client_id(client)

@@ -90,6 +90,7 @@ and provide following global functions:
   If the callback adapts the message, the new information is passed back to mosquitto
   and the message will be adapted accordingly.
 
+* `tick()`: tick event. Will be called on every mosquitto main loop iteration
 
 Auxiliary module
 ================

@@ -116,9 +116,9 @@ static void* _mosq_copy(void* src, size_t size)
     if (NULL != dest)
     {
         void *ret = memcpy(dest, src, size);
-	if (NULL == ret)
-	    mosquitto_free(dest);
-	return ret;
+        if (NULL == ret)
+            mosquitto_free(dest);
+        return ret;
     }
     return NULL;
 }
@@ -208,6 +208,15 @@ static int handle_message(int event _UNUSED_ATR, void *event_data, void *user_da
 }
 
 
+static void _py_tick(void* user_data);
+static int handle_tick(int event _UNUSED_ATR, void *event_data _UNUSED_ATR, void *user_data)
+{
+    struct pyplugin_data *data = user_data;
+
+    _py_tick(data->user_data);
+
+    return MOSQ_ERR_SUCCESS;
+}
 
 /* Plugin entry points */
 CFFI_DLLEXPORT int mosquitto_plugin_version(int supported_version_count,
@@ -273,6 +282,11 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
                                 handle_message,
                                 NULL,
                                 data);
+    mosquitto_callback_register(identifier,
+                                MOSQ_EVT_TICK,
+                                handle_tick,
+                                NULL,
+                                data);
 
     *userdata = data;
 
@@ -305,6 +319,10 @@ CFFI_DLLEXPORT int mosquitto_plugin_cleanup(void *user_data,
     mosquitto_callback_unregister(data->identifier,
                                   MOSQ_EVT_MESSAGE,
                                   handle_message,
+                                  NULL);
+    mosquitto_callback_unregister(data->identifier,
+                                  MOSQ_EVT_TICK,
+                                  handle_tick,
                                   NULL);
 
     return _py_plugin_cleanup(data->user_data, options, option_count);

@@ -27,6 +27,7 @@ ffibuilder.embedding_init_code(f"""
         _properties_to_list,
         _list_to_properties,
     )
+    import asyncio
 
 
     _HANDLER = []
@@ -142,6 +143,18 @@ ffibuilder.embedding_init_code(f"""
         event_message.qos = message.qos
         event_message.retain = message.retain
         return res
+
+
+    @ffi.def_extern()
+    def _py_tick(user_data):
+        # execute python event loop once
+        if 0 == _HANDLER.index(user_data):
+            loop = asyncio.get_event_loop()
+            loop.stop()
+            loop.run_forever()
+
+        obj = ffi.from_handle(user_data)
+        obj.tick()
 """)
 
 ffibuilder.compile(target=f"{plugin}.*", verbose=True)

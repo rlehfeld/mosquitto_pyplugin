@@ -89,6 +89,7 @@ extern "Python" int _py_disconnect(void* user_data,
 extern "Python" int _py_message(void* user_data,
                                 const struct mosquitto* client,
                                 struct mosquitto_evt_message* event_message);
+extern "Python" void _py_tick(void* user_data);
 
 int mosquitto_property_add_byte(
                         mosquitto_property **proplist,
@@ -167,10 +168,10 @@ int mosquitto_string_to_property_info(
                         int *identifier,
                         int *type);
 int mosquitto_broker_publish_copy(
-			const char *clientid,
-			const char *topic,
-			int payloadlen,
-			const void *payload,
-			int qos,
-			bool retain,
-			mosquitto_property *properties);
+                        const char *clientid,
+                        const char *topic,
+                        int payloadlen,
+                        const void *payload,
+                        int qos,
+                        bool retain,
+                        mosquitto_property *properties);

@@ -432,6 +432,11 @@ class MosquittoCallbackHandler(object):
                     return res
         return lib.MOSQ_ERR_SUCCESS
 
+    def tick(self):
+        for module in self._modules:
+            if hasattr(module, 'tick'):
+                module.tick()
+
 
 def _newhandler():
     handler = MosquittoCallbackHandler()

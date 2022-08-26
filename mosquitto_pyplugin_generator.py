@@ -42,6 +42,7 @@ ffibuilder.embedding_init_code(f"""
         def copy(self):
             return dotdict(self)
 
+
     @ffi.def_extern()
     def _py_plugin_init(options, option_count):
         handler = _newhandler()

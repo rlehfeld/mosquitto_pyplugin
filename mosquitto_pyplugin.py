@@ -441,9 +441,16 @@ class MosquittoCallbackHandler(object):
         for module in self._modules:
             if hasattr(module, 'reload'):
                 result = module.reload()
-                if result != lib.MOSQ_ERR_PLUGIN_DEFER:
+                if (result != lib.MOSQ_ERR_DEFER and
+                    result != lib.MOSQ_ERR_SUCCESS):
                     return result
 
+        # there seems to be a bug in Mosquitto.
+        # from logic and how reload is used internally
+        # correct return should be MOSQ_ERR_SUCCESS
+        # but this would lead to the fact, that via the
+        # v5 plugin interface, the other modules won't
+        # be initialized. Due to that we have to return
         return lib.MOSQ_ERR_PLUGIN_DEFER
 
 

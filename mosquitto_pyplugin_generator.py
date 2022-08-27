@@ -156,6 +156,12 @@ ffibuilder.embedding_init_code(f"""
 
         obj = ffi.from_handle(user_data)
         obj.tick()
+
+
+    @ffi.def_extern()
+    def _py_reload(user_data):
+        obj = ffi.from_handle(user_data)
+        return obj.reload()
 """)
 
 ffibuilder.compile(target=f"{plugin}.*", verbose=True)

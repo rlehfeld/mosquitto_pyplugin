@@ -92,6 +92,9 @@ and provide following global functions:
 
 * `tick()`: tick event. Will be called on every mosquitto main loop iteration
 
+* `reload()`: reload event. Will be called on reload/security_init by mosquitto
+
+
 Auxiliary module
 ================
 

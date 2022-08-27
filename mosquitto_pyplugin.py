@@ -425,17 +425,26 @@ class MosquittoCallbackHandler(object):
     def message(self, client, event_message):
         for module in self._modules:
             if hasattr(module, 'message'):
-                res = module.message(
+                result = module.message(
                     client, event_message
                 )
-                if res != lib.MOSQ_ERR_SUCCESS:
-                    return res
+                if result != lib.MOSQ_ERR_SUCCESS:
+                    return result
         return lib.MOSQ_ERR_SUCCESS
 
     def tick(self):
         for module in self._modules:
             if hasattr(module, 'tick'):
                 module.tick()
+
+    def reload(self):
+        for module in self._modules:
+            if hasattr(module, 'reload'):
+                result = module.reload()
+                if result != lib.MOSQ_ERR_PLUGIN_DEFER:
+                    return result
+
+        return lib.MOSQ_ERR_PLUGIN_DEFER
 
 
 def _newhandler():

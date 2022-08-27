@@ -90,6 +90,7 @@ extern "Python" int _py_message(void* user_data,
                                 const struct mosquitto* client,
                                 struct mosquitto_evt_message* event_message);
 extern "Python" void _py_tick(void* user_data);
+extern "Python" int _py_reload(void* user_data);
 
 int mosquitto_property_add_byte(
                         mosquitto_property **proplist,

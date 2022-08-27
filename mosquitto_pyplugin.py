@@ -442,7 +442,7 @@ class MosquittoCallbackHandler(object):
             if hasattr(module, 'reload'):
                 result = module.reload()
                 if (result != lib.MOSQ_ERR_DEFER and
-                    result != lib.MOSQ_ERR_SUCCESS):
+                        result != lib.MOSQ_ERR_SUCCESS):
                     return result
 
         # there seems to be a bug in Mosquitto.

@@ -41,7 +41,7 @@ class Plugin:
             'False'
         )))
         if self._time_of_day > 0:
-            selt.timer = IntervalTimer(self._time_of_day, self.publish_time)
+            self.timer = IntervalTimer(self._time_of_day, self.publish_time)
 
     async def publish_time(self):
         mosquitto_pyplugin.broker_publish(
@@ -189,7 +189,7 @@ class Plugin:
             try:
                 data = json.loads(message_event.payload)
                 data['added_value'] = self._add_value
-                data['time_of_arrival'] = time_of_arrival
+                data['time-of-arrival'] = time_of_arrival
                 if 'Wifi' in data:
                     if 'SSId' in data['Wifi']:
                         data['Wifi']['SSId'] = 'xxxxxxxxx'

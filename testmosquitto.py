@@ -10,7 +10,12 @@ class IntervalTimer:
     def __init__(self, interval, callback):
         self._interval = interval
         self._callback = callback
-        self._task = asyncio.create_task(self._job())
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = new_event_loop()
+            asyncio.set_event_loop(loop)
+        self._task = loop.create_task(self._job())
 
     async def _job(self):
         offset = int(time.time()) % self._interval
@@ -36,17 +41,13 @@ class Plugin:
             'False'
         )))
         if self._time_of_day > 0:
-            loop = asyncio.get_event_loop()
-            loop.call_soon(self.create_interval_timer)
-
-    def create_interval_timer(self):
-        self._timer = IntervalTimer(self._time_of_day, self.publish_time)
+            selt.timer = IntervalTimer(self._time_of_day, self.publish_time)
 
     async def publish_time(self):
         mosquitto_pyplugin.broker_publish(
             None,
             'time-of-day',
-            int(time.time())
+            time.asctime(time.gmtime())
         )
 
     def plugin_cleanup(self, options):
@@ -181,7 +182,7 @@ class Plugin:
             )
         )
 
-        time_of_arrival = int(time.time())
+        time_of_arrival = time.asctime(time.gmtime())
 
         message_event.retain = False
         if message_event.payload:

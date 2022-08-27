@@ -150,7 +150,11 @@ ffibuilder.embedding_init_code(f"""
     def _py_tick(user_data):
         # execute python event loop once
         if 0 == _HANDLER.index(user_data):
-            loop = asyncio.get_event_loop()
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = new_event_loop()
+                asyncio.set_event_loop(loop)
             loop.stop()
             loop.run_forever()
 

@@ -1,20 +1,52 @@
 import mosquitto_pyplugin
 import json
 import sys
+import time
+import asyncio
 from distutils.util import strtobool
+
+
+class IntervalTimer:
+    def __init__(self, interval, callback):
+        self._interval = interval
+        self._callback = callback
+        self._task = asyncio.create_task(self._job())
+
+    async def _job(self):
+        offset = int(time.time()) % self._interval
+        await asyncio.sleep(self._interval - offset)
+        await self._callback()
+        self._task = asyncio.create_task(self._job())
+
+    def cancel(self):
+        self._task.cancel()
 
 
 class Plugin:
 
     def __init__(self, options):
+        mosquitto_pyplugin.log(
+            mosquitto_pyplugin.MOSQ_LOG_INFO,
+            'Plugin.__init__ (options: {})'.format(options)
+        )
         self._add_value = options.get('add_value', 4711)
+        self._time_of_day = int(options.get('time_of_day', 0))
         self._anonymous_allowed = bool(strtobool(options.get(
             'allow_anonymous',
             'False'
         )))
-        mosquitto_pyplugin.log(
-            mosquitto_pyplugin.MOSQ_LOG_INFO,
-            'Plugin.__init__ (options: {})'.format(options)
+        if self._time_of_day > 0:
+            loop = asyncio.get_event_loop()
+            loop.call_soon(self.create_interval_timer)
+
+    def create_interval_timer(self):
+        self._timer = IntervalTimer(self._time_of_day, self.publish_time)
+
+    async def publish_time(self):
+        mosquitto_pyplugin.broker_publish(
+            None,
+            'time-of-day',
+            int(time.time())
         )
 
     def plugin_cleanup(self, options):
@@ -149,11 +181,14 @@ class Plugin:
             )
         )
 
+        time_of_arrival = int(time.time())
+
         message_event.retain = False
         if message_event.payload:
             try:
                 data = json.loads(message_event.payload)
                 data['added_value'] = self._add_value
+                data['time_of_arrival'] = time_of_arrival
                 if 'Wifi' in data:
                     if 'SSId' in data['Wifi']:
                         data['Wifi']['SSId'] = 'xxxxxxxxx'
@@ -165,8 +200,8 @@ class Plugin:
 
         message_event.properties.extend(
             (
-                ('user-property', ('prop1', 'value1')),
-                ('user-property', ('prop2', 'value2')),
+                ('user-property', ('time-of-arrival', time_of_arrival)),
+                ('user-property', ('other-property', 'other-value')),
             )
         )
 

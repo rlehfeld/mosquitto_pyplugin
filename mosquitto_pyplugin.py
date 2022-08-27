@@ -21,11 +21,11 @@ def _from_cstr(cstr):
 def _to_binary(value):
     if value is None:
         return ffi.NULL, 0
-    elif isinstance(value, str):
-        value_binary = value.encode('UTF8')
-    else:
+    elif isinstance(value, (bytes, bytearray)):
         value_binary = bytes(value)
-    return ffi.new('char[]', value_binary), len(value)
+    else:
+        value_binary = str(value).encode('UTF8')
+    return ffi.new('char[]', value_binary), len(value_binary)
 
 
 def _to_cstr(value):
@@ -508,7 +508,8 @@ def kick_client_by_username(client_username, with_will):
     )
 
 
-def broker_publish(clientid, topic, payload, qos, retain, properties):
+def broker_publish(clientid, topic, payload=None,
+                   qos=0, retain=False, properties=[]):
     payload_ptr, payloadlen = _to_binary(payload)
     return lib.mosquitto_broker_publish_copy(
         _to_cstr(clientid),

@@ -18,10 +18,10 @@ class IntervalTimer:
         self._task = loop.create_task(self._job())
 
     async def _job(self):
-        offset = int(time.time()) % self._interval
-        await asyncio.sleep(self._interval - offset)
-        await self._callback()
-        self._task = asyncio.create_task(self._job())
+        while True:
+            offset = int(time.time()) % self._interval
+            await asyncio.sleep(self._interval - offset)
+            await self._callback()
 
     def cancel(self):
         self._task.cancel()

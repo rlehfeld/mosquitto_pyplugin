@@ -6,7 +6,7 @@ Mosquitto plugin that lets you write your plugins in Python.
 Compiling
 =========
 
-You need mosquitto version 1.5.1 or higher.
+You need mosquitto version 2.0.0 or higher.
 
 Make sure you have Python dev package installed (`apt-get install
 python-dev` or `apt-get install python3-dev` under Debian/Ubuntu).

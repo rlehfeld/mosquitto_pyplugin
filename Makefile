@@ -1,12 +1,17 @@
 PYTHON ?= pypy3.9
-DESTDIR ?= /usr
+PYBIN := $(shell readlink -m $(shell which ${PYTHON}))
+ifdef VIRTUAL_ENV
+  DESTDIR ?= ${VIRTUAL_ENV}
+else
+  DESTDIR ?= /usr
+endif
 LIBDESTDIR ?= ${DESTDIR}/lib64
-PYDESTDIR ?= ${LIBDESTDIR}/${PYTHON}
+PYDESTDIR ?= ${LIBDESTDIR}/$(shell basename ${PYBIN})
 
 all: mosquitto_pyplugin.so
 
 mosquitto_pyplugin.so: mosquitto_pyplugin_generator.py mosquitto_pyplugin_export.h mosquitto_pyplugin_impl.c
-	$(PYTHON) $<
+	$(PYBIN) $<
 
 ${LIBDESTDIR}/%.so: %.so
 	mkdir -p $(@D)

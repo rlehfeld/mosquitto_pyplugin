@@ -8,6 +8,8 @@ endif
 LIBDESTDIR ?= ${DESTDIR}/lib64
 PYDESTDIR ?= ${LIBDESTDIR}/$(shell basename ${PYBIN})
 
+export PYHOME
+
 all: mosquitto_pyplugin.so
 
 mosquitto_pyplugin.so: mosquitto_pyplugin_generator.py mosquitto_pyplugin_export.h mosquitto_pyplugin_impl.c

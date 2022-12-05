@@ -1,5 +1,9 @@
+import os
+import sys
 import cffi
 import os.path
+
+
 ffibuilder = cffi.FFI()
 
 plugin = os.path.basename(__file__).replace('_generator.py', '')
@@ -7,10 +11,16 @@ prefix = os.path.join(os.path.dirname(__file__), plugin)
 export_file = prefix + "_export.h"
 impl_file = prefix + "_impl.c"
 
+
 with open(impl_file) as f:
+    compile_args = ["-Werror", "-Wno-error=unused-parameter", "-Wall", "-Wextra"]
+    pyhome = os.getenv('PYHOME', None)
+    if pyhome:
+        compile_args.append(f'-DPYHOME="{pyhome}"')
     ffibuilder.set_source('_' + plugin,
                           f'#define PLUGIN_NAME "{plugin}"\n' + f.read(),
-                          extra_compile_args=["-Werror", "-Wno-error=unused-parameter", "-Wall", "-Wextra"],
+                          extra_compile_args=compile_args,
+                          extra_link_args=["-Wl,-rpath,/share/mosquitto/lib"],
                           libraries=['mosquitto'])
 
 with open(export_file) as f:

@@ -2,15 +2,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <libgen.h>
 #include <assert.h>
 #include <Python.h>
 #include <mosquitto.h>
-#include <mosquitto_plugin.h>
 #include <mosquitto_broker.h>
+#include <mosquitto_plugin.h>
 #include <mqtt_protocol.h>
 #include <openssl/x509.h>
 #include <openssl/bio.h>
 #include <openssl/pem.h>
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#include <dlfcn.h>
 
 struct pyplugin_data {
     mosquitto_plugin_id_t *identifier;
@@ -248,6 +253,42 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
     struct pyplugin_data *data = calloc(1, sizeof(*data));
     assert(NULL != data);
     data->identifier = identifier;
+
+    if (!Py_IsInitialized()) {
+        PyConfig config;
+        PyConfig_InitIsolatedConfig(&config);
+        config.buffered_stdio = 0;
+
+#ifdef PYHOME
+        {
+            wchar_t *pyhome = Py_DecodeLocale(PYHOME, NULL);
+            if (NULL != pyhome) {
+              PyStatus status = PyConfig_SetString(&config, &config.home,
+                                                   pyhome);
+              PyMem_RawFree(pyhome);
+#else
+        Dl_info info;
+        if (0 != dladdr(mosquitto_plugin_init, &info) &&
+            info.dli_fname && *info.dli_fname) {
+            wchar_t *program = Py_DecodeLocale(info.dli_fname, NULL);
+            if (NULL != program) {
+                PyStatus status = PyConfig_SetString(&config, &config.program_name,
+                                                     program);
+                PyMem_RawFree(program);
+#endif
+                if (PyStatus_Exception(status)) {
+                    PyConfig_Clear(&config);
+                    Py_ExitStatusException(status);
+                }
+            }
+        }
+
+        PyStatus status = Py_InitializeFromConfig(&config);
+        PyConfig_Clear(&config);
+        if (PyStatus_Exception(status)) {
+              Py_ExitStatusException(status);
+        }
+    }
 
     if (!started) {
         if (cffi_start_python())

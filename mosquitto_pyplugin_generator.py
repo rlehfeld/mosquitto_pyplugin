@@ -4,7 +4,21 @@ import cffi
 import os.path
 
 
-ffibuilder = cffi.FFI()
+class FFiBuilder(cffi.FFI):
+    def _apply_embedding_fix(self, kwds):
+        ret = super()._apply_embedding_fix(kwds)
+        if '__pypy__' in sys.builtin_module_names:
+            if sys.version_info >= (3,):
+                import platform
+                if platform.system() == 'Linux' and platform.freedesktop_os_release()['ID'] == 'fedora':
+                    libraries = kwds.get('libraries', None)
+                    if libraries is not None:
+                        pythonlib = f'pypy{".".join(map(str, sys.version_info[0:2]))}-c'
+                        kwds['libraries'] = [l if l != 'pypy3-c' else pythonlib for l in libraries]
+        return ret
+
+
+ffibuilder = FFiBuilder()
 
 plugin = os.path.basename(__file__).replace('_generator.py', '')
 prefix = os.path.join(os.path.dirname(__file__), plugin)

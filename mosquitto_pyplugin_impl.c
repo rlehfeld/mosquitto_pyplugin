@@ -254,6 +254,7 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
     assert(NULL != data);
     data->identifier = identifier;
 
+#ifndef PYPY_VERSION
     if (!Py_IsInitialized()) {
         PyConfig config;
         PyConfig_InitIsolatedConfig(&config);
@@ -289,6 +290,7 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
               Py_ExitStatusException(status);
         }
     }
+#endif
 
     if (!started) {
         if (cffi_start_python())

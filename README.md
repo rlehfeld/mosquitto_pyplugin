@@ -23,7 +23,7 @@ version than default (pypy3.9):
 
     make PYTHON=python3
 
-If all goes ok, there should be `mosquitto_pyplugin.so` file in the
+If all goes ok, there should be `libmosquitto_pyplugin.so` file in the
 current directory. Copy it under path accessible for mosquitto daemon,
 e.g.: `/usr/local/lib/mosquitto/`.
 
@@ -41,7 +41,7 @@ Running
 
 Add following line to `mosquitto.conf`:
 
-    plugin /path/to/mosquitto_pyplugin.so
+    plugin /path/to/libmosquitto_pyplugin.so
 
 File mosquitto_pyplugin.py must be found by the used python interpreter.
 You can use PYTHONPATH to adapt this accordingly.

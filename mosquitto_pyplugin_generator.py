@@ -192,4 +192,4 @@ ffibuilder.embedding_init_code(f"""
         return obj.reload()
 """)
 
-ffibuilder.compile(target=f"{plugin}.*", verbose=True)
+ffibuilder.compile(target=f"lib{plugin}.*", verbose=True)

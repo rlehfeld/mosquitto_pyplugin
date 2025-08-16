@@ -10,9 +10,9 @@ PYDESTDIR ?= ${LIBDESTDIR}/$(shell basename ${PYBIN})
 
 export PYHOME
 
-all: mosquitto_pyplugin.so
+all: libmosquitto_pyplugin.so
 
-mosquitto_pyplugin.so: mosquitto_pyplugin_generator.py mosquitto_pyplugin_export.h mosquitto_pyplugin_impl.c
+libmosquitto_pyplugin.so: mosquitto_pyplugin_generator.py mosquitto_pyplugin_export.h mosquitto_pyplugin_impl.c
 	$(PYBIN) $<
 
 ${LIBDESTDIR}/%.so: %.so
@@ -23,9 +23,9 @@ ${PYDESTDIR}/%.py: %.py
 	mkdir -p $(@D)
 	install -m 755 $< $(@D)
 
-install: ${LIBDESTDIR}/mosquitto_pyplugin.so ${PYDESTDIR}/mosquitto_pyplugin.py
+install: ${LIBDESTDIR}/libmosquitto_pyplugin.so ${PYDESTDIR}/mosquitto_pyplugin.py
 
 clean:
-	rm -f *.so *.o mosquitto_pyplugin.c
+	rm -f *.so *.o _mosquitto_pyplugin.c
 
 .PHONY: all clean

@@ -2,4 +2,4 @@
 *.pyc
 *.o
 _mosquitto_pyplugin.c
-mosquitto_pyplugin.so
+libmosquitto_pyplugin.so

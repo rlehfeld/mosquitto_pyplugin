@@ -41,6 +41,16 @@ with open(export_file) as f:
     ffibuilder.cdef(f.read())
 
 ffibuilder.embedding_init_code(f"""
+    import os
+    import sys
+    pythonpath = os.getenv('PYTHONPATH')
+    if pythonpath:
+        for index, path in enumerate(pythonpath.split(':'), 1):
+            sys.path.insert(index, path)
+        del index
+        del path
+    del pythonpath
+
     from _{plugin} import ffi, lib
     from {plugin} import (
         _newhandler,

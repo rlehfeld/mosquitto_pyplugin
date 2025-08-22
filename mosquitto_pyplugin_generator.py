@@ -45,10 +45,15 @@ ffibuilder.embedding_init_code(f"""
     import sys
     pythonpath = os.getenv('PYTHONPATH')
     if pythonpath:
-        for index, path in enumerate(pythonpath.split(':'), 1):
-            sys.path.insert(index, path)
-        del index
+        pathlist = pythonpath.split(':')
+        for path in reversed(pathlist):
+            try:
+                sys.path.remove(path)
+            except ValueError:
+                pass
+            sys.path.insert(1, path)
         del path
+        del pathlist
     del pythonpath
 
     from _{plugin} import ffi, lib

@@ -29,7 +29,7 @@ def _to_binary(value):
 
 
 def _to_cstr(value):
-    return _to_binary(value)[0]
+    return _to_binary(str(value))[0]
 
 
 def _read_byte_property(property_ptr, property_identifier):
@@ -376,11 +376,18 @@ class MosquittoCallbackHandler(object):
     def plugin_cleanup(self, options):
         options = {k: v for k, v in options.items() if k != "pyplugin_module"}
 
+        failures = 0
         for module in self._modules:
             if hasattr(module, 'plugin_cleanup'):
-                module.plugin_cleanup(options)
-
+                try:
+                    if lib.MOSQ_ERR_SUCCESS != module.plugin_cleanup(options):
+                        failures += 1
+                except Exception as e:
+                    lib._mosq_log(lib.MOSQ_LOG_ERR, repr(e))
+                    failures += 1
         _HANDLER.remove(self)
+
+        return failures
 
     def basic_auth(self, client, username, password):
         for module in self._modules:

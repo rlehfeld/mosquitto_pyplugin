@@ -102,6 +102,7 @@ ffibuilder.embedding_init_code(f"""
         res = obj.plugin_cleanup({{_from_cstr(o.key): _from_cstr(o.value)
                                  for o in plugin_options}})
         _HANDLER.remove(user_data)
+        return res
 
 
     @ffi.def_extern()

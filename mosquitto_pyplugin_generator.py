@@ -96,7 +96,7 @@ ffibuilder.embedding_init_code(f"""
 
 
     @ffi.def_extern()
-    def _py_plugin_cleanup(options, option_count):
+    def _py_plugin_cleanup(user_data, options, option_count):
         obj = ffi.from_handle(user_data)
         plugin_options = ffi.unpack(options, option_count)
         res = obj.plugin_cleanup({{_from_cstr(o.key): _from_cstr(o.value)

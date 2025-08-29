@@ -143,12 +143,14 @@ The following constants for `access` parameter in `acl_check` are
 provided:
 
 * `MOSQ_ACL_NONE`
-* `MOSQ_ACL_SUBSCRIBE`
 * `MOSQ_ACL_READ`
 * `MOSQ_ACL_WRITE`
+* `MOSQ_ACL_SUBSCRIBE`
+* `MOSQ_ACL_UNSUBSCRIBE`
 
 The following constants for `loglevel` parameter in `Log` are provided:
 
+* `MOSQ_LOG_NONE`
 * `MOSQ_LOG_INFO`
 * `MOSQ_LOG_NOTICE`
 * `MOSQ_LOG_WARNING`
@@ -156,12 +158,55 @@ The following constants for `loglevel` parameter in `Log` are provided:
 * `MOSQ_LOG_DEBUG`
 * `MOSQ_LOG_SUBSCRIBE` (not recommended for use by plugins)
 * `MOSQ_LOG_UNSUBSCRIBE` (not recommended for use by plugins)
+* `MOSQ_LOG_WEBSOCKETS` (not recommended for use by plugins)
+* `MOSQ_LOG_INTERNAL` (not recommended for use by plugins)
+* `MOSQ_LOG_ALL` (not recommended for use by plugins)
 
 The following constants for `errors` are provided:
 
+* `MOSQ_ERR_AUTH_CONTINUE`
+* `MOSQ_ERR_NO_SUBSCRIBERS`
+* `MOSQ_ERR_SUB_EXISTS`
+* `MOSQ_ERR_CONN_PENDING`
 * `MOSQ_ERR_SUCCESS`
-* `MOSQ_ERR_INVAL`
 * `MOSQ_ERR_NOMEM`
+* `MOSQ_ERR_PROTOCOL`
+* `MOSQ_ERR_INVAL`
+* `MOSQ_ERR_NO_CONN`
+* `MOSQ_ERR_CONN_REFUSED`
+* `MOSQ_ERR_NOT_FOUND`
+* `MOSQ_ERR_CONN_LOST`
+* `MOSQ_ERR_TLS`
+* `MOSQ_ERR_PAYLOAD_SIZE`
+* `MOSQ_ERR_NOT_SUPPORTED`
 * `MOSQ_ERR_AUTH`
+* `MOSQ_ERR_ACL_DENIED`
 * `MOSQ_ERR_UNKNOWN`
+* `MOSQ_ERR_ERRNO`
+* `MOSQ_ERR_EAI`
+* `MOSQ_ERR_PROXY`
 * `MOSQ_ERR_PLUGIN_DEFER`
+* `MOSQ_ERR_MALFORMED_UTF8`
+* `MOSQ_ERR_KEEPALIVE`
+* `MOSQ_ERR_LOOKUP`
+* `MOSQ_ERR_MALFORMED_PACKET`
+* `MOSQ_ERR_DUPLICATE_PROPERTY`
+* `MOSQ_ERR_TLS_HANDSHAKE`
+* `MOSQ_ERR_QOS_NOT_SUPPORTED`
+* `MOSQ_ERR_OVERSIZE_PACKET`
+* `MOSQ_ERR_OCSP`
+* `MOSQ_ERR_TIMEOUT`
+* `MOSQ_ERR_RETAIN_NOT_SUPPORTED`
+* `MOSQ_ERR_TOPIC_ALIAS_INVALID`
+* `MOSQ_ERR_ADMINISTRATIVE_ACTION`
+* `MOSQ_ERR_ALREADY_EXISTS`
+
+The following constants for property types are provided:
+
+* `MQTT_PROP_TYPE_BYTE`
+* `MQTT_PROP_TYPE_INT16`
+* `MQTT_PROP_TYPE_INT32`
+* `MQTT_PROP_TYPE_VARINT`
+* `MQTT_PROP_TYPE_BINARY`
+* `MQTT_PROP_TYPE_STRING`
+* `MQTT_PROP_TYPE_STRING_PAIR`

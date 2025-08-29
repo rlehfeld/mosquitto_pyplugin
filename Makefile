@@ -1,4 +1,4 @@
-PYTHON ?= pypy3.9
+PYTHON ?= pypy3.11
 PYBIN := $(shell readlink -m $(shell which ${PYTHON}))
 ifdef VIRTUAL_ENV
   DESTDIR ?= ${VIRTUAL_ENV}

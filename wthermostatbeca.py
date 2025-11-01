@@ -33,8 +33,8 @@ class Plugin:
             topic = (message_event.topic[:-len(suffix)] +
                      '/cmnd/things/thermostat/schedules')
             mosquitto_pyplugin.broker_publish(
-                None,
                 topic,
+                None,
                 message_event.payload,
                 2,
                 True,

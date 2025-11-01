@@ -45,8 +45,8 @@ class Plugin:
 
     async def publish_time(self):
         mosquitto_pyplugin.broker_publish(
-            None,
             'time-of-day',
+            None,
             time.asctime(time.gmtime())
         )
 

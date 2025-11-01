@@ -314,6 +314,23 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
                                 handle_basic_auth,
                                 NULL,
                                 data);
+#if 0
+    mosquitto_callback_register(identifier,
+                                MOSQ_EVT_EXT_AUTH_START,
+                                handle_ext_auth_start,
+                                NULL,
+                                data);
+    mosquitto_callback_register(identifier,
+                                MOSQ_EVT_EXT_AUTH_CONTINUE,
+                                handle_ext_auth_continue,
+                                NULL,
+                                data);
+    mosquitto_callback_register(identifier,
+                                MOSQ_EVT_CONTROL,
+                                handle_control,
+                                NULL,
+                                data);
+#endif
     mosquitto_callback_register(identifier,
                                 MOSQ_EVT_ACL_CHECK,
                                 handle_acl_check,

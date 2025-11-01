@@ -13,7 +13,7 @@ class IntervalTimer:
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
-            loop = new_event_loop()
+            loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
         self._task = loop.create_task(self._job())
 

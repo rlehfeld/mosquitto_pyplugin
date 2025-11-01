@@ -1,20 +1,31 @@
 from _mosquitto_pyplugin import ffi, lib
+# from inspect import getmembers, isfunction
 import importlib
 
 
 _HANDLER = []
 
 
+# def handle_control(*topics):
+#     def decorator(func):
+#         if topics:
+#             try:
+#                 control = func.PLUGIN_HANDLE_CONTROL
+#             except AttributeError:
+#                 control = set()
+#                 func.PLUGIN_HANDLE_CONTROL = control
+#             control.update(topics)
+#         return func
+#     return decorator
+
+
 def _from_binary(value, valuelen):
-    if value is None or value == ffi.NULL:
-        return None
-    return bytes(ffi.unpack(ffi.cast('char*', value), valuelen))
+    if value is not None and value != ffi.NULL:
+        return bytes(ffi.unpack(ffi.cast('char*', value), valuelen))
 
 
 def _from_cstr(cstr):
-    if cstr is None or cstr == ffi.NULL:
-        return None
-    else:
+    if cstr is not None and cstr != ffi.NULL:
         return ffi.string(cstr).decode('utf8')
 
 
@@ -29,6 +40,8 @@ def _to_binary(value):
 
 
 def _to_cstr(value):
+    if value is None or value == ffi.NULL:
+        return ffi.NULL
     return _to_binary(str(value))[0]
 
 
@@ -356,10 +369,17 @@ def _list_to_properties(property_list):
 
 
 class MosquittoCallbackHandler(object):
-    def __init__(self):
+    def __init__(self, /):
         self._modules = []
 
-    def plugin_init(self, options):
+    # def handle_controls(self, /):
+    #     control = set()
+    #     for m in self._modules:
+    #         for func in getmembers(m, isfunction):
+    #             control.update(getattr(func, 'PLUGIN_HANDLE_CONTROL', ()))
+    #     return tuple(control)
+
+    def plugin_init(self, /, options):
         modules = [v for k, v in options.items() if k == "pyplugin_module"]
         options = {k: v for k, v in options.items() if k != "pyplugin_module"}
 
@@ -373,7 +393,7 @@ class MosquittoCallbackHandler(object):
 
         return lib.MOSQ_ERR_SUCCESS
 
-    def plugin_cleanup(self, options):
+    def plugin_cleanup(self, /, options):
         options = {k: v for k, v in options.items() if k != "pyplugin_module"}
 
         failures = 0
@@ -389,7 +409,7 @@ class MosquittoCallbackHandler(object):
 
         return failures
 
-    def basic_auth(self, client, username, password):
+    def basic_auth(self, /, client, username, password):
         for module in self._modules:
             if hasattr(module, 'basic_auth'):
                 result = module.basic_auth(client, username, password)
@@ -398,7 +418,7 @@ class MosquittoCallbackHandler(object):
 
         return lib.MOSQ_ERR_PLUGIN_DEFER
 
-    def acl_check(self, client, topic, access, payload):
+    def acl_check(self, /, client, topic, access, payload):
         for module in self._modules:
             if hasattr(module, 'acl_check'):
                 result = module.acl_check(
@@ -409,7 +429,7 @@ class MosquittoCallbackHandler(object):
 
         return lib.MOSQ_ERR_PLUGIN_DEFER
 
-    def psk_key(self, client, identity, hint):
+    def psk_key(self, /, client, identity, hint):
         for module in self._modules:
             if hasattr(module, 'psk_key'):
                 psk = module.psk_key(
@@ -418,18 +438,14 @@ class MosquittoCallbackHandler(object):
                 if psk is not None:
                     return psk
 
-        return None
-
-    def disconnect(self, client, reason):
+    def disconnect(self, /, client, reason):
         for module in self._modules:
             if hasattr(module, 'disconnect'):
                 module.disconnect(
                     client, reason
                 )
 
-        return None
-
-    def message(self, client, event_message):
+    def message(self, /, client, event_message):
         for module in self._modules:
             if hasattr(module, 'message'):
                 result = module.message(
@@ -439,12 +455,12 @@ class MosquittoCallbackHandler(object):
                     return result
         return lib.MOSQ_ERR_SUCCESS
 
-    def tick(self):
+    def tick(self, /):
         for module in self._modules:
             if hasattr(module, 'tick'):
                 module.tick()
 
-    def reload(self):
+    def reload(self, /):
         for module in self._modules:
             if hasattr(module, 'reload'):
                 result = module.reload()
@@ -515,7 +531,7 @@ def kick_client_by_username(client_username, with_will):
     )
 
 
-def broker_publish(clientid, topic, payload=None,
+def broker_publish(topic, clientid=None, payload=None,
                    qos=0, retain=False, properties=[]):
     payload_ptr, payloadlen = _to_binary(payload)
     return lib.mosquitto_broker_publish_copy(

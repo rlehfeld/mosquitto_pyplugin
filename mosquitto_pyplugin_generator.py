@@ -10,11 +10,19 @@ class FFiBuilder(cffi.FFI):
         if '__pypy__' in sys.builtin_module_names:
             if sys.version_info >= (3,):
                 import platform
-                if platform.system() == 'Linux' and platform.freedesktop_os_release()['ID'] == 'fedora':
+                if (platform.system() == 'Linux' and
+                        platform.freedesktop_os_release()['ID'] == 'fedora'):
                     libraries = kwds.get('libraries', None)
                     if libraries is not None:
-                        pythonlib = f'pypy{".".join(map(str, sys.version_info[0:2]))}-c'
-                        kwds['libraries'] = [l if l != 'pypy3-c' else pythonlib for l in libraries]
+                        pylib = (
+                            'pypy' +
+                            '.'.join(map(str, sys.version_info[0:2])) +
+                            '-c'
+                        )
+                        kwds['libraries'] = [
+                            lib if lib != 'pypy3-c' else pylib
+                            for lib in libraries
+                        ]
         return ret
 
 
@@ -22,19 +30,24 @@ ffibuilder = FFiBuilder()
 
 plugin = os.path.basename(__file__).replace('_generator.py', '')
 prefix = os.path.join(os.path.dirname(__file__), plugin)
-export_file = prefix + "_export.h"
-impl_file = prefix + "_impl.c"
+export_file = prefix + '_export.h'
+impl_file = prefix + '_impl.c'
 
 
 with open(impl_file) as f:
-    compile_args = ["-Werror", "-Wno-error=unused-parameter", "-Wall", "-Wextra"]
+    compile_args = [
+        '-Werror',
+        '-Wno-error=unused-parameter',
+        '-Wall',
+        '-Wextra',
+    ]
     pyhome = os.getenv('PYHOME', None)
     if pyhome:
         compile_args.append(f'-DPYHOME="{pyhome}"')
     ffibuilder.set_source('_' + plugin,
                           f'#define PLUGIN_NAME "{plugin}"\n' + f.read(),
                           extra_compile_args=compile_args,
-                          extra_link_args=["-Wl,-rpath,/share/mosquitto/lib"],
+                          extra_link_args=['-Wl,-rpath,/share/mosquitto/lib'],
                           libraries=['mosquitto'])
 
 with open(export_file) as f:
@@ -92,7 +105,6 @@ ffibuilder.embedding_init_code(f"""
             user_data = ffi.new_handle(handler)
             _HANDLER.append(user_data)
             return user_data
-        return None
 
 
     @ffi.def_extern()
@@ -193,7 +205,7 @@ ffibuilder.embedding_init_code(f"""
             try:
                 loop = asyncio.get_event_loop()
             except RuntimeError:
-                loop = new_event_loop()
+                loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
             loop.stop()
             loop.run_forever()
@@ -208,4 +220,4 @@ ffibuilder.embedding_init_code(f"""
         return obj.reload()
 """)
 
-ffibuilder.compile(target=f"lib{plugin}.*", verbose=True)
+ffibuilder.compile(target=f'lib{plugin}.*', verbose=True)

@@ -128,6 +128,19 @@ static void* _mosq_copy(void* src, size_t size)
     return NULL;
 }
 
+static void *_mosq_memdup(void *src, size_t size)
+{
+    void *dest = malloc(size);
+    if (NULL != dest)
+    {
+        void *ret = memcpy(dest, src, size);
+        if (NULL == ret)
+            free(dest);
+        return ret;
+    }
+    return NULL;
+}
+
 /* event callback methods */
 static int _py_basic_auth(void* user_data,
                           const struct mosquitto* client,
@@ -142,6 +155,33 @@ static int handle_basic_auth(int event _UNUSED_ATR, void *event_data, void *user
                           basic_auth_event->client,
                           basic_auth_event->username,
                           basic_auth_event->password);
+}
+
+
+static int _py_extended_auth_start(void* user_data,
+                                   const struct mosquitto* client,
+                                   struct mosquitto_evt_extended_auth* event_extended_auth);
+static int handle_extended_auth_start(int event _UNUSED_ATR, void *event_data, void *user_data)
+{
+    struct pyplugin_data *data = user_data;
+    struct mosquitto_evt_extended_auth *event_message = event_data;
+
+    return _py_extended_auth_start(data->user_data,
+                                   event_message->client,
+                                   event_message);
+}
+
+static int _py_extended_auth_continue(void* user_data,
+                                      const struct mosquitto* client,
+                                      struct mosquitto_evt_extended_auth* event_extended_auth);
+static int handle_extended_auth_continue(int event _UNUSED_ATR, void *event_data, void *user_data)
+{
+    struct pyplugin_data *data = user_data;
+    struct mosquitto_evt_extended_auth *event_message = event_data;
+
+    return _py_extended_auth_continue(data->user_data,
+                                      event_message->client,
+                                      event_message);
 }
 
 
@@ -314,17 +354,17 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
                                 handle_basic_auth,
                                 NULL,
                                 data);
-#if 0
     mosquitto_callback_register(identifier,
                                 MOSQ_EVT_EXT_AUTH_START,
-                                handle_ext_auth_start,
+                                handle_extended_auth_start,
                                 NULL,
                                 data);
     mosquitto_callback_register(identifier,
                                 MOSQ_EVT_EXT_AUTH_CONTINUE,
-                                handle_ext_auth_continue,
+                                handle_extended_auth_continue,
                                 NULL,
                                 data);
+#if 0
     mosquitto_callback_register(identifier,
                                 MOSQ_EVT_CONTROL,
                                 handle_control,
@@ -378,6 +418,20 @@ CFFI_DLLEXPORT int mosquitto_plugin_cleanup(void *user_data,
                                   MOSQ_EVT_BASIC_AUTH,
                                   handle_basic_auth,
                                   NULL);
+    mosquitto_callback_unregister(data->identifier,
+                                  MOSQ_EVT_EXT_AUTH_START,
+                                  handle_extended_auth_start,
+                                  NULL);
+    mosquitto_callback_unregister(data->identifier,
+                                  MOSQ_EVT_EXT_AUTH_CONTINUE,
+                                  handle_extended_auth_continue,
+                                  NULL);
+#if 0
+    mosquitto_callback_unregister(data->identifier,
+                                  MOSQ_EVT_CONTROL,
+                                  handle_control,
+                                  NULL);
+#endif
     mosquitto_callback_unregister(data->identifier,
                                   MOSQ_EVT_ACL_CHECK,
                                   handle_acl_check,

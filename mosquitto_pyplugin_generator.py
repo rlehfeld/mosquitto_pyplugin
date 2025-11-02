@@ -126,6 +126,49 @@ ffibuilder.embedding_init_code(f"""
 
 
     @ffi.def_extern()
+    def _py_extended_auth_start(user_data, client, event_data):
+        obj = ffi.from_handle(user_data)
+        auth = dotdict()
+        auth.method = _from_cstr(event_data.auth_method)
+        auth.data_in = _from_binary(
+            event_data.data_in,
+            event_data.data_in_len
+        )
+        res = obj.extended_auth_start(client, auth)
+        if res != lib.MOSQ_ERR_PLUGIN_DEFER:
+            data_out = auth.get('data_out', None)
+            if data_out is not None:
+                data_out, data_out_len = _to_binary(data_out)
+                event_data.data_out = lib._mosq_memdup(
+                    data_out,
+                    data_out_len,
+                )
+                event_data.data_out_len = data_out_len
+        return res
+
+
+    @ffi.def_extern()
+    def _py_extended_auth_continue(user_data, client, event_data):
+        obj = ffi.from_handle(user_data)
+        auth = dotdict()
+        auth.data_in = _from_binary(
+            event_data.data_in,
+            event_data.data_in_len
+        )
+        res = obj.extended_auth_continue(client, auth)
+        if res != lib.MOSQ_ERR_PLUGIN_DEFER:
+            data_out = auth.get('data_out', None)
+            if data_out is not None:
+                data_out, data_out_len = _to_binary(data_out)
+                event_data.data_out = lib._mosq_memdup(
+                    data_out,
+                    data_out_len,
+                )
+                event_data.data_out_len = data_out_len
+        return res
+
+
+    @ffi.def_extern()
     def _py_acl_check(user_data, client, topic, access, payload, payloadlen):
         obj = ffi.from_handle(user_data)
         topic = _from_cstr(topic)

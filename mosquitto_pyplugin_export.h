@@ -95,6 +95,7 @@ bool _mosq_topic_matches_sub(char* sub, char* topic);
 char *strncpy(char *dest, const char *src, size_t n);
 void free(void *ptr);
 char *_mosq_strdup(const char* s);
+void *_mosq_memdup(void* src, size_t size);
 void *_mosq_copy(void* src, size_t size);
 
 extern "Python" void* _py_plugin_init(struct mosquitto_opt *options,
@@ -106,6 +107,12 @@ extern "Python" int _py_basic_auth(void* user_data,
                                    const struct mosquitto *client,
                                    const char* username,
                                    const char* password);
+extern "Python" int _py_extended_auth_start(void* user_data,
+                                            const struct mosquitto* client,
+                                            struct mosquitto_evt_extended_auth* event_extended_auth);
+extern "Python" int _py_extended_auth_continue(void* user_data,
+                                               const struct mosquitto* client,
+                                               struct mosquitto_evt_extended_auth* event_extended_auth);
 extern "Python" int _py_acl_check(void* user_data,
                                   const struct mosquitto* client,
                                   const char *topic,

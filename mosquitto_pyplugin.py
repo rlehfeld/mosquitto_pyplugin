@@ -385,8 +385,9 @@ class MosquittoCallbackHandler(object):
 
         for m in modules:
             module = importlib.import_module(m)
-            if hasattr(module, 'plugin_init'):
-                result = module.plugin_init(options)
+            plugin_init = getattr(module, 'plugin_init', None)
+            if callable(plugin_init):
+                result = plugin_init(options)
                 if result:
                     module = result
             self._modules.append(module)
@@ -398,9 +399,10 @@ class MosquittoCallbackHandler(object):
 
         failures = 0
         for module in self._modules:
-            if hasattr(module, 'plugin_cleanup'):
+            plugin_cleanup = getattr(module, 'plugin_cleanup', None)
+            if callable(plugin_cleanup):
                 try:
-                    if lib.MOSQ_ERR_SUCCESS != module.plugin_cleanup(options):
+                    if lib.MOSQ_ERR_SUCCESS != plugin_cleanup(options):
                         failures += 1
                 except Exception as e:
                     lib._mosq_log(lib.MOSQ_LOG_ERR, repr(e))
@@ -411,8 +413,30 @@ class MosquittoCallbackHandler(object):
 
     def basic_auth(self, /, client, username, password):
         for module in self._modules:
-            if hasattr(module, 'basic_auth'):
-                result = module.basic_auth(client, username, password)
+            basic_auth = getattr(module, 'basic_auth', None)
+            if callable(basic_auth):
+                result = basic_auth(client, username, password)
+                if result != lib.MOSQ_ERR_PLUGIN_DEFER:
+                    return result
+
+        return lib.MOSQ_ERR_PLUGIN_DEFER
+
+    def extended_auth_start(self, /, client, auth):
+        for module in self._modules:
+            extended_auth_start = getattr(module, 'extended_auth_start', None)
+            if callable(extended_auth_start):
+                result = extended_auth_start(client, auth)
+                if result != lib.MOSQ_ERR_PLUGIN_DEFER:
+                    return result
+
+        return lib.MOSQ_ERR_PLUGIN_DEFER
+
+    def extended_auth_continue(self, /, client, auth):
+        for module in self._modules:
+            extended_auth_continue = getattr(
+                module, 'extended_auth_continue', None)
+            if callable(extended_auth_continue):
+                result = extended_auth_continue(client, auth)
                 if result != lib.MOSQ_ERR_PLUGIN_DEFER:
                     return result
 
@@ -420,8 +444,9 @@ class MosquittoCallbackHandler(object):
 
     def acl_check(self, /, client, topic, access, payload):
         for module in self._modules:
-            if hasattr(module, 'acl_check'):
-                result = module.acl_check(
+            acl_check = getattr(module, 'acl_check', None)
+            if callable(acl_check):
+                result = acl_check(
                     client, topic, access, payload,
                 )
                 if result != lib.MOSQ_ERR_PLUGIN_DEFER:
@@ -431,8 +456,9 @@ class MosquittoCallbackHandler(object):
 
     def psk_key(self, /, client, identity, hint):
         for module in self._modules:
-            if hasattr(module, 'psk_key'):
-                psk = module.psk_key(
+            psk_key = getattr(module, 'psk_key', None)
+            if callable(psk_key):
+                psk = psk_key(
                     client, identity, hint
                 )
                 if psk is not None:
@@ -440,15 +466,17 @@ class MosquittoCallbackHandler(object):
 
     def disconnect(self, /, client, reason):
         for module in self._modules:
-            if hasattr(module, 'disconnect'):
-                module.disconnect(
+            disconnect = getattr(module, 'disconnect', None)
+            if callable(disconnect):
+                disconnect(
                     client, reason
                 )
 
     def message(self, /, client, event_message):
         for module in self._modules:
-            if hasattr(module, 'message'):
-                result = module.message(
+            message = getattr(module, 'message', None)
+            if callable(message):
+                result = message(
                     client, event_message
                 )
                 if result != lib.MOSQ_ERR_SUCCESS:
@@ -457,13 +485,15 @@ class MosquittoCallbackHandler(object):
 
     def tick(self, /):
         for module in self._modules:
-            if hasattr(module, 'tick'):
-                module.tick()
+            tick = getattr(module, 'tick', None)
+            if callable(tick):
+                tick()
 
     def reload(self, /):
         for module in self._modules:
-            if hasattr(module, 'reload'):
-                result = module.reload()
+            reload = getattr(module, 'reload', None)
+            if callable(reload):
+                result = reload()
                 if (result != lib.MOSQ_ERR_DEFER and
                         result != lib.MOSQ_ERR_SUCCESS):
                     return result

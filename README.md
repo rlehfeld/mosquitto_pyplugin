@@ -117,6 +117,8 @@ The module provides following function:
 * `log(loglevel, message)`: log `message` into mosquitto's log
   file with the given `loglevel` (one of the constants below).
 
+* `strerror(mosq_errno)`: return brief error message
+
 * `client_address(client)`: get client address from `client`
   handle
 

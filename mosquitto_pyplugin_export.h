@@ -81,6 +81,7 @@ const int MQTT_PROP_TYPE_STRING;
 const int MQTT_PROP_TYPE_STRING_PAIR;
 
 void _mosq_log(int loglevel, char* message);
+const char *_mosq_strerror(int mosq_errno);
 const char *_mosq_client_address(const struct mosquitto *client);
 const char *_mosq_client_id(const struct mosquitto *client);
 char* _mosq_client_certificate(const struct mosquitto *client);

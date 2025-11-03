@@ -517,6 +517,10 @@ def log(loglevel, message):
     lib._mosq_log(loglevel, _to_cstr(message))
 
 
+def strerror(mosq_errno):
+    return _from_cstr(lib._mosq_log(mosq_errno))
+
+
 def client_address(client):
     return _from_cstr(lib._mosq_client_address(client))
 

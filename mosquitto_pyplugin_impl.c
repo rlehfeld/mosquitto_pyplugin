@@ -40,6 +40,11 @@ static void _mosq_log(int loglevel, char* message)
     mosquitto_log_printf(loglevel, "%s", message);
 }
 
+static const char *_mosq_strerror(int mosq_errno)
+{
+    return mosquitto_strerror(mosq_errno);
+}
+
 static const char *_mosq_client_address(const struct mosquitto *client)
 {
     return mosquitto_client_address(client);

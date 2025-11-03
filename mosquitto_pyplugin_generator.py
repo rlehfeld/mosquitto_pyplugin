@@ -231,7 +231,7 @@ ffibuilder.embedding_init_code(f"""
                payloadlen,
            )
            event_message.payloadlen = payloadlen
-        if orig_message.properties is not message.properties:
+        if orig_message.properties != message.properties:
            event_message.properties = _list_to_properties(
                message.properties
            )

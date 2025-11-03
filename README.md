@@ -141,7 +141,9 @@ The module provides following function:
 
 * `kick_client_by_username(client_username, with_will)`:
 
-* `broker_publish(topic, clientid, payload, qos, retain, properties)`:
+* `broker_publish(topic, clientid=None, payload=None, qos=0, retain=False, properties=[])`:
+   when clientid is None [default], publish message to any client.
+   If a clientid is given, publish the message the the specified client.
 
 * `topic_matches_sub(sub, topic)`: it mirrors
   `mosquitto_topic_matches_sub` from libmosquitto C library - the

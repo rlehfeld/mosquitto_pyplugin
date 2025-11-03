@@ -17,6 +17,15 @@ struct mosquitto_evt_message {
     ...;
 };
 
+struct mosquitto_evt_extended_auth {
+    const void *const data_in;
+    void *data_out;
+    const uint16_t data_in_len;
+    uint16_t data_out_len;
+    const char *const auth_method;
+    ...;
+};
+
 const int MOSQ_ACL_NONE;
 const int MOSQ_ACL_READ;
 const int MOSQ_ACL_WRITE;

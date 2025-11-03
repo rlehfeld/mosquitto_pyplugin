@@ -70,6 +70,16 @@ and provide following global functions:
   client, username and password combination is allowed to log in
   or mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER if another module should take care
 
+* `extended_auth_start(client, auth)`: return mosquitto_pyplugin.MOSQ_ERR_SUCCESS if given
+  auth.data_in succeeded the authentication. return mosquitto_pyplugin.MOSQ_ERR_AUTH_CONTINUE and
+  pass new auth.data_out to client to continue authentication
+  or mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER if another module should take care
+
+* `extended_auth_continue(client, auth)`: return mosquitto_pyplugin.MOSQ_ERR_SUCCESS if given
+  auth.data_in succeeded the authentication. return mosquitto_pyplugin.MOSQ_ERR_AUTH_CONTINUE and
+  pass new auth.data_out to client to continue authentication
+  or mosquitto_pyplugin.MOSQ_ERR_PLUGIN_DEFER if another module should take care
+
 * `acl_check(client, topic, access, payload)`: return
   MOSQ_ERR_SUCCESS if given user is allowed to subscribe (`access =
   mosquitto_pyplugin.MOSQ_ACL_SUBSCRIBE`), read (`access =

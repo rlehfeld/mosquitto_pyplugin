@@ -148,7 +148,7 @@ static void *_mosq_memdup(void *src, size_t size)
 
 /* event callback methods */
 static int _py_basic_auth(void* user_data,
-                          const struct mosquitto* client,
+                          struct mosquitto* client,
                           const char* username,
                           const char* password);
 static int handle_basic_auth(int event _UNUSED_ATR, void *event_data, void *user_data)
@@ -164,7 +164,7 @@ static int handle_basic_auth(int event _UNUSED_ATR, void *event_data, void *user
 
 
 static int _py_extended_auth_start(void* user_data,
-                                   const struct mosquitto* client,
+                                   struct mosquitto* client,
                                    struct mosquitto_evt_extended_auth* event_extended_auth);
 static int handle_extended_auth_start(int event _UNUSED_ATR, void *event_data, void *user_data)
 {
@@ -177,7 +177,7 @@ static int handle_extended_auth_start(int event _UNUSED_ATR, void *event_data, v
 }
 
 static int _py_extended_auth_continue(void* user_data,
-                                      const struct mosquitto* client,
+                                      struct mosquitto* client,
                                       struct mosquitto_evt_extended_auth* event_extended_auth);
 static int handle_extended_auth_continue(int event _UNUSED_ATR, void *event_data, void *user_data)
 {
@@ -191,7 +191,7 @@ static int handle_extended_auth_continue(int event _UNUSED_ATR, void *event_data
 
 
 static int _py_acl_check(void* user_data,
-                         const struct mosquitto* client,
+                         struct mosquitto* client,
                          const char *topic,
                          int access,
                          const void* payload,
@@ -211,7 +211,7 @@ static int handle_acl_check(int event _UNUSED_ATR, void *event_data, void *user_
 
 
 static int _py_psk_key(void* user_data,
-                       const struct mosquitto* client,
+                       struct mosquitto* client,
                        const char *hint,
                        const char *identity,
                        char *key,
@@ -231,7 +231,7 @@ static int handle_psk_key(int event _UNUSED_ATR, void *event_data, void *user_da
 
 
 static int _py_disconnect(void* user_data,
-                          const struct mosquitto* client,
+                          struct mosquitto* client,
                           int reason);
 static int handle_disconnect(int event _UNUSED_ATR, void *event_data, void *user_data)
 {
@@ -245,7 +245,7 @@ static int handle_disconnect(int event _UNUSED_ATR, void *event_data, void *user
 
 
 static int _py_message(void* user_data,
-                       const struct mosquitto* client,
+                       struct mosquitto* client,
                        struct mosquitto_evt_message* event_message);
 static int handle_message(int event _UNUSED_ATR, void *event_data, void *user_data)
 {

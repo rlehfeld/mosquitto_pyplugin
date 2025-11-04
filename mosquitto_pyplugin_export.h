@@ -114,32 +114,32 @@ extern "Python" int _py_plugin_cleanup(void *user_data,
                                        struct mosquitto_opt *options,
                                        int option_count);
 extern "Python" int _py_basic_auth(void* user_data,
-                                   const struct mosquitto *client,
+                                   struct mosquitto *client,
                                    const char* username,
                                    const char* password);
 extern "Python" int _py_extended_auth_start(void* user_data,
-                                            const struct mosquitto* client,
+                                            struct mosquitto* client,
                                             struct mosquitto_evt_extended_auth* event_extended_auth);
 extern "Python" int _py_extended_auth_continue(void* user_data,
-                                               const struct mosquitto* client,
+                                               struct mosquitto* client,
                                                struct mosquitto_evt_extended_auth* event_extended_auth);
 extern "Python" int _py_acl_check(void* user_data,
-                                  const struct mosquitto* client,
+                                  struct mosquitto* client,
                                   const char *topic,
                                   int access,
                                   const void* payload,
                                   uint32_t payloadlen);
 extern "Python" int _py_psk_key(void* user_data,
-                                const struct mosquitto* client,
+                                struct mosquitto* client,
                                 const char *identity,
                                 const char *hint,
                                 char *key,
                                 int max_key_len);
 extern "Python" int _py_disconnect(void* user_data,
-                                   const struct mosquitto* client,
+                                   struct mosquitto* client,
                                    int reason);
 extern "Python" int _py_message(void* user_data,
-                                const struct mosquitto* client,
+                                struct mosquitto* client,
                                 struct mosquitto_evt_message* event_message);
 extern "Python" void _py_tick(void* user_data);
 extern "Python" int _py_reload(void* user_data);

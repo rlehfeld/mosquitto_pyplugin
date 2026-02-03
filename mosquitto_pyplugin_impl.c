@@ -462,5 +462,24 @@ CFFI_DLLEXPORT int mosquitto_plugin_cleanup(void *user_data,
                                   handle_reload,
                                   NULL);
 
-    return _py_plugin_cleanup(data->user_data, options, option_count);
+    int result = _py_plugin_cleanup(data->user_data, options, option_count);
+    if (MOSQ_ERR_SUCCESS != result) {
+        mosquitto_log_printf(
+            MOSQ_LOG_WARNING,
+            "Plugin cleanup returned not successfull result %d.",
+            result
+        );
+    }
+
+#ifndef PYPY_VERSION
+    result = Py_FinalizeEx();
+    if (result < 0) {
+        mosquitto_log_printf(
+            MOSQ_LOG_WARNING,
+            "Py_FinalizeEx returned error code %d.",
+            result
+        );
+    }
+#endif
+    return MOSQ_ERR_SUCCESS;
 }

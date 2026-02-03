@@ -481,5 +481,10 @@ CFFI_DLLEXPORT int mosquitto_plugin_cleanup(void *user_data,
         );
     }
 #endif
+
+    mosquitto_log_printf(
+        MOSQ_LOG_WARNING,
+        "_py_plugin_cleanup returning"
+    );
     return MOSQ_ERR_SUCCESS;
 }

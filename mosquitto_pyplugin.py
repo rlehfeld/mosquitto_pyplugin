@@ -404,12 +404,12 @@ class MosquittoCallbackHandler(object):
                 try:
                     if lib.MOSQ_ERR_SUCCESS != plugin_cleanup(options):
                         failures += 1
-                except Exception as e:
+                except BaseException as e:
                     lib._mosq_log(lib.MOSQ_LOG_ERR, repr(e))
                     failures += 1
         _HANDLER.remove(self)
 
-        return failures
+        raise SystemExit(failures)
 
     def basic_auth(self, /, client, username, password):
         for module in self._modules:

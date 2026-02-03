@@ -1,5 +1,6 @@
 from _mosquitto_pyplugin import ffi, lib
 # from inspect import getmembers, isfunction
+import sys
 import importlib
 
 
@@ -409,6 +410,12 @@ class MosquittoCallbackHandler(object):
                     failures += 1
         _HANDLER.remove(self)
 
+        # reprare for silent system exit
+        def unraisablehook(unraisable, /):
+            # ignore the SysExit exception silently
+            pass
+
+        sys.unraisablehook = unraisablehook
         raise SystemExit(failures)
 
     def basic_auth(self, /, client, username, password):

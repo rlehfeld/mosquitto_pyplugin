@@ -1,5 +1,6 @@
 from _mosquitto_pyplugin import ffi, lib
 # from inspect import getmembers, isfunction
+import os
 import sys
 import importlib
 
@@ -421,7 +422,7 @@ class MosquittoCallbackHandler(object):
         # simply using a return here is also no option
         # at least not with pypy as here we do not have
         # the option to use Py_Finalize(Ex).
-        sys.stderr = None
+        sys.stderr = open(os.devnull, 'w')
         raise SystemExit(failures)
 
     def basic_auth(self, /, client, username, password):

@@ -410,12 +410,18 @@ class MosquittoCallbackHandler(object):
                     failures += 1
         _HANDLER.remove(self)
 
-        # reprare for silent system exit
-        def unraisablehook(unraisable, /):
-            # ignore the SysExit exception silently
-            pass
-
-        sys.unraisablehook = unraisablehook
+        # raising of SystemExit will cause
+        # sending of an unraisable exception printout
+        # to be written to stderr. Setting stderr to None
+        # pevents this. The option of defing an own
+        # function and setting it to sys.unraisablehook
+        # cannot be used as this would cause
+        # calling back to python after python is no longer
+        # properly working and this causes problems as well
+        # simply using a return here is also no option
+        # at least not with pypy as here we do not have
+        # the option to use Py_Finalize(Ex).
+        sys.stderr = None
         raise SystemExit(failures)
 
     def basic_auth(self, /, client, username, password):

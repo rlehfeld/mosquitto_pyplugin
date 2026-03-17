@@ -193,10 +193,7 @@ ffibuilder.embedding_init_code(f"""
            psk_bytes = bytes(psk)
         if len(psk_bytes) >= max_key_len:
             return lib.MOSQ_ERR_AUTH
-        psk_bytes = (
-            b'0' * (max_key_len - len(psk_bytes)) + psk_bytes
-        )
-        lib.strncpy(key, _to_cstr(psk_bytes), max_key_len)
+        lib.strncpy(key, _to_binary(psk_bytes)[0], max_key_len)
         return lib.MOSQ_ERR_SUCCESS
 
 

@@ -212,8 +212,8 @@ static int handle_acl_check(int event _UNUSED_ATR, void *event_data, void *user_
 
 static int _py_psk_key(void* user_data,
                        struct mosquitto* client,
-                       const char *hint,
                        const char *identity,
+                       const char *hint,
                        char *key,
                        int max_key_len);
 static int handle_psk_key(int event _UNUSED_ATR, void *event_data, void *user_data)
@@ -223,8 +223,8 @@ static int handle_psk_key(int event _UNUSED_ATR, void *event_data, void *user_da
 
     return _py_psk_key(data->user_data,
                        psk_key_event->client,
-                       psk_key_event->hint,
                        psk_key_event->identity,
+                       psk_key_event->hint,
                        psk_key_event->key,
                        psk_key_event->max_key_len);
 }

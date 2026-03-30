@@ -508,7 +508,7 @@ class MosquittoCallbackHandler(object):
             reload = getattr(module, 'reload', None)
             if callable(reload):
                 result = reload()
-                if (result != lib.MOSQ_ERR_DEFER and
+                if (result != lib.MOSQ_ERR_PLUGIN_DEFER and
                         result != lib.MOSQ_ERR_SUCCESS):
                     return result
 

@@ -6,9 +6,15 @@
 #include <assert.h>
 #include <Python.h>
 #include <mosquitto.h>
+#ifndef MOSQUITTO_BROKER_H
 #include <mosquitto_broker.h>
+#endif
+#ifndef MOSQUITTO_BROKER_PLUGIN_H
 #include <mosquitto_plugin.h>
+#endif
+#ifndef MQTT_PROTOCOL_H
 #include <mqtt_protocol.h>
+#endif
 #include <openssl/x509.h>
 #include <openssl/bio.h>
 #include <openssl/pem.h>

@@ -304,11 +304,12 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
 {
     static bool started = false;
     struct pyplugin_data *data = calloc(1, sizeof(*data));
-    Dl_info dlinfo = {};
     assert(NULL != data);
     data->identifier = identifier;
 
-    if (dladdr(mosquitto_plugin_init, &dlinfo))
+    Dl_info dlinfo = {};
+    if (0 != dladdr(mosquitto_plugin_init, &dlinfo) &&
+	dlinfo.dli_fname && *dlinfo.dli_fname)
         mosquitto_plugin_handle = dlopen(dlinfo.dli_fname, RTLD_LAZY | RTLD_GLOBAL);
 
 #ifndef PYPY_VERSION
@@ -325,10 +326,8 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
                                                    pyhome);
               PyMem_RawFree(pyhome);
 #else
-        Dl_info info;
-        if (0 != dladdr(mosquitto_plugin_init, &info) &&
-            info.dli_fname && *info.dli_fname) {
-            wchar_t *program = Py_DecodeLocale(info.dli_fname, NULL);
+        if (dlinfo.dli_fname && *dlinfo.dli_fname) {
+            wchar_t *program = Py_DecodeLocale(dlinfo.dli_fname, NULL);
             if (NULL != program) {
                 PyStatus status = PyConfig_SetString(&config, &config.program_name,
                                                      program);

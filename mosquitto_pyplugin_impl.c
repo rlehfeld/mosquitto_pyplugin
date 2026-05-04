@@ -294,6 +294,7 @@ CFFI_DLLEXPORT int mosquitto_plugin_version(int supported_version_count,
     return -1;
 }
 
+static uint64_t mosquitto_plugin_references = 0;
 static void* mosquitto_plugin_handle = NULL;
 
 static void* _py_plugin_init(struct mosquitto_opt *options, int option_count);
@@ -307,9 +308,12 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
     assert(NULL != data);
     data->identifier = identifier;
 
+    ++mosquitto_plugin_references;
+
     Dl_info dlinfo = {};
     if (0 != dladdr(mosquitto_plugin_init, &dlinfo) &&
-	dlinfo.dli_fname && *dlinfo.dli_fname)
+            dlinfo.dli_fname && *dlinfo.dli_fname &&
+            NULL == mosquitto_plugin_handle)
         mosquitto_plugin_handle = dlopen(dlinfo.dli_fname, RTLD_LAZY | RTLD_GLOBAL);
 
 #ifndef PYPY_VERSION
@@ -498,8 +502,11 @@ CFFI_DLLEXPORT int mosquitto_plugin_cleanup(void *user_data,
         "_py_plugin_cleanup returning"
     );
 
-    if (mosquitto_plugin_handle)
+    --mosquitto_plugin_references;
+    if (mosquitto_plugin_references <= 0 && NULL != mosquitto_plugin_handle) {
         dlclose(mosquitto_plugin_handle);
+        mosquitto_plugin_handle = NULL;
+    }
 
     return MOSQ_ERR_SUCCESS;
 }

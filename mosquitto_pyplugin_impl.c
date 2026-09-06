@@ -43,7 +43,9 @@ static void die(const char *fmt, ...)
 
 static void _mosq_log(int loglevel, char* message)
 {
+    PyThreadState *save = PyEval_SaveThread();
     mosquitto_log_printf(loglevel, "%s", message);
+    PyEval_RestoreThread(save);
 }
 
 static const char *_mosq_strerror(int mosq_errno)
@@ -106,12 +108,18 @@ static int _mosq_set_username(struct mosquitto *client, const char *username)
 
 static int _mosq_kick_client_by_clientid(const char *client_id, bool with_will)
 {
-    return mosquitto_kick_client_by_clientid(client_id, with_will);
+    PyThreadState *save = PyEval_SaveThread();
+    int result = mosquitto_kick_client_by_clientid(client_id, with_will);
+    PyEval_RestoreThread(save);
+    return result;
 }
 
 static int _mosq_kick_client_by_username(const char *client_username, bool with_will)
 {
-    return mosquitto_kick_client_by_username(client_username, with_will);
+    PyThreadState *save = PyEval_SaveThread();
+    int result = mosquitto_kick_client_by_username(client_username, with_will);
+    PyEval_RestoreThread(save);
+    return result;
 }
 
 static bool _mosq_topic_matches_sub(char* sub, char* topic)

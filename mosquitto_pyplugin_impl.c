@@ -349,6 +349,7 @@ CFFI_DLLEXPORT int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier,
         if (PyStatus_Exception(status)) {
               Py_ExitStatusException(status);
         }
+        PyEval_SaveThread();
     }
 #endif
 
